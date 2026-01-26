@@ -232,6 +232,36 @@ Gestiona temas, monitorización y contenido del sistema.
 
 ---
 
+### UC12: Crear y Publicar Invitación Personalizada
+
+**Actor Principal:** Usuario autenticado  
+**Precondiciones:** Usuario con sesión activa
+
+**Flujo Principal:**
+1. Usuario navega a la sección de Invitaciones
+2. Crea nueva invitación
+3. Personaliza título (default: "¿Quieres ser mi San Valentín?")
+4. Personaliza mensaje de "Sí" (default: "Sí")
+5. Personaliza lista de mensajes de "No" (default: ["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"])
+6. Sube multimedia (imágenes/GIFs, máx. 10 elementos)
+7. Sistema genera slug único automáticamente
+8. Opcionalmente vincula con Landing existente
+9. Publica la invitación
+
+**Flujos Alternativos:**
+- 6a. GIF excede 10MB → Sistema rechaza carga
+- 6b. `gif_enabled` es `false` → Solo permite imágenes
+- 6c. Supera 10 elementos multimedia → Sistema rechaza carga adicional
+- 8a. No vincula con Landing → Invitación independiente
+- 9a. Guarda como borrador → `is_published = false`
+
+**Postcondiciones:** 
+- Invitación creada en BD con slug único
+- Multimedia asociada a `InvitationMedia`
+- Invitación accesible en `/invitaciones/{slug}` si está publicada
+
+---
+
 ## Diagramas UML
 
 ### Diagrama de Casos de Uso
@@ -257,8 +287,10 @@ rectangle "UsPage System" {
   usecase "UC9: Despublicar Landing" as UC9
   usecase "UC10: Ver Landing Pública" as UC10
   usecase "UC11: Cerrar Sesión" as UC11
+  usecase "UC12: Crear Invitación" as UC12
   usecase "Validar Slug" as VAL_SLUG
   usecase "Autenticarse" as AUTH
+  usecase "Validar Multimedia" as VAL_MEDIA
 
   VA --> UC1 : registrarse
   VA --> UC2 : iniciar sesión
@@ -273,12 +305,15 @@ rectangle "UsPage System" {
   UA --> UC8 : publicar
   UA --> UC9 : despublicar
   UA --> UC11 : cerrar sesión
+  UA --> UC12 : crear invitación
   
   UC1 .> AUTH : <<include>>
   UC2 .> AUTH : <<include>>
   UC3 .> VAL_SLUG : <<include>>
   UC8 .> VAL_SLUG : <<include>>
   UC10 .> VAL_SLUG : <<include>>
+  UC12 .> VAL_SLUG : <<include>>
+  UC12 .> VAL_MEDIA : <<include>>
   
   Admin --> UC3 : gestiona temas (futuro)
 }

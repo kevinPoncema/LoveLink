@@ -73,6 +73,7 @@ package "Models" {
     - id: int
     - landing_id: int
     - file_path: string
+    - public_url: string
     - type: enum
     - mime_type: string
     - file_size: int
@@ -82,11 +83,61 @@ package "Models" {
     --
     + landing(): BelongsTo
   }
+
+  class SystemControl {
+    - id: int
+    - max_images_per_landing: int
+    - max_file_size_mb: int
+    - allowed_mime: json
+    - thumbnails_enabled: bool
+    - gif_enabled: bool
+    - updated_at: timestamp
+  }
+
+  class Invitation {
+    - id: int
+    - user_id: int
+    - landing_id: int (nullable)
+    - slug: string
+    - title: string
+    - yes_message: string
+    - no_messages: json
+    - is_published: boolean
+    - created_at: timestamp
+    - updated_at: timestamp
+    - deleted_at: timestamp (nullable)
+    --
+    + user(): BelongsTo
+    + landing(): BelongsTo (nullable)
+    + media(): HasMany
+    + getNoMessagesAttribute(): array
+  }
+
+  class InvitationMedia {
+    - id: int
+    - invitation_id: int
+    - file_path: string
+    - public_url: string
+    - type: enum
+    - mime_type: string
+    - file_size: int
+    - sort_order: int
+    - is_active: boolean
+    - created_at: timestamp
+    --
+    + invitation(): BelongsTo
+    + isGif(): bool
+  }
 }
 
 User "1" --> "*" Landing : has many
+User "1" --> "*" Invitation : has many
 Landing "*" --> "1" Theme : belongs to
 Landing "1" --> "*" Media : has many
+Landing "1" --> "*" Invitation : has many (optional)
+Invitation "1" --> "*" InvitationMedia : has many
+SystemControl ..> Media : config limits
+SystemControl ..> InvitationMedia : config limits
 
 @enduml
 ```
@@ -140,11 +191,39 @@ package "Services" {
     + getThemeById(id): Theme
     + applyThemeToLanding(landing, themeId): void
   }
+
+  class InvitationService {
+    - invitationRepo: InvitationRepositoryInterface
+    - invitationMediaService: InvitationMediaService
+    - slugService: SlugService
+    --
+    + createInvitation(user, data): Invitation
+    + updateInvitation(id, data): Invitation
+    + publishInvitation(id): void
+    + unpublishInvitation(id): void
+    + getPublicInvitation(slug): ?Invitation
+    + deleteInvitation(id): void
+    + linkToLanding(invitationId, landingId): void
+  }
+
+  class InvitationMediaService {
+    - invitationMediaRepo: InvitationMediaRepositoryInterface
+    - storageService: StorageService
+    --
+    + uploadMedia(invitation, file): InvitationMedia
+    + deleteMedia(id): void
+    + reorderMedia(invitationId, order): void
+    + validateFile(file): bool
+    + checkLimit(invitationId): bool
+    + isGifAllowed(): bool
+  }
 }
 
 LandingService --> MediaService : uses
 LandingService --> SlugService : uses
 LandingService --> ThemeService : uses
+InvitationService --> InvitationMediaService : uses
+InvitationService --> SlugService : uses
 
 @enduml
 ```
@@ -195,6 +274,27 @@ package "Repositories" {
       + update(id, data): User
       + delete(id): void
     }
+
+    interface InvitationRepositoryInterface {
+      + findBySlug(slug): ?Invitation
+      + findById(id): ?Invitation
+      + findByUser(user): Collection
+      + findPublished(slug): ?Invitation
+      + findByLanding(landingId): Collection
+      + create(data): Invitation
+      + update(id, data): Invitation
+      + delete(id): void
+      + count(userId): int
+    }
+
+    interface InvitationMediaRepositoryInterface {
+      + findByInvitation(invitationId): Collection
+      + create(invitationId, data): InvitationMedia
+      + update(id, data): Media
+      + delete(id): void
+      + reorder(invitationId, order): void
+      + count(invitationId): int
+    }
   }
 
   package "Eloquent" {
@@ -241,12 +341,39 @@ package "Repositories" {
       + update(id, data): User
       + delete(id): void
     }
+
+    class EloquentInvitationRepository {
+      - model: Invitation
+      --
+      + findBySlug(slug): ?Invitation
+      + findById(id): ?Invitation
+      + findByUser(user): Collection
+      + findPublished(slug): ?Invitation
+      + findByLanding(landingId): Collection
+      + create(data): Invitation
+      + update(id, data): Invitation
+      + delete(id): void
+      + count(userId): int
+    }
+
+    class EloquentInvitationMediaRepository {
+      - model: InvitationMedia
+      --
+      + findByInvitation(invitationId): Collection
+      + create(invitationId, data): InvitationMedia
+      + update(id, data): Media
+      + delete(id): void
+      + reorder(invitationId, order): void
+      + count(invitationId): int
+    }
   }
 
   EloquentLandingRepository ..|> LandingRepositoryInterface
   EloquentMediaRepository ..|> MediaRepositoryInterface
   EloquentThemeRepository ..|> ThemeRepositoryInterface
   EloquentUserRepository ..|> UserRepositoryInterface
+  EloquentInvitationRepository ..|> InvitationRepositoryInterface
+  EloquentInvitationMediaRepository ..|> InvitationMediaRepositoryInterface
 }
 
 @enduml
@@ -287,6 +414,25 @@ package "Presentación" {
     + login(request): Response
     + logout(): Response
   }
+
+  class InvitationController {
+    - invitationService: InvitationService
+    --
+    + create(): View
+    + store(request): Response
+    + edit(id): View
+    + update(id, request): Response
+    + show(slug): View
+    + destroy(id): Response
+  }
+
+  class InvitationMediaController {
+    - invitationMediaService: InvitationMediaService
+    --
+    + store(request): Response
+    + destroy(id): Response
+    + reorder(request): Response
+  }
 }
 
 package "Lógica de Negocio" {
@@ -312,6 +458,23 @@ package "Lógica de Negocio" {
     + generate(text): string
     + validate(slug): bool
   }
+
+  class InvitationService {
+    - invitationRepo: InvitationRepositoryInterface
+    - invitationMediaService: InvitationMediaService
+    - slugService: SlugService
+    --
+    + createInvitation(user, data): Invitation
+    + updateInvitation(id, data): Invitation
+    + publishInvitation(id): void
+  }
+
+  class InvitationMediaService {
+    - invitationMediaRepo: InvitationMediaRepositoryInterface
+    --
+    + uploadMedia(invitation, file): InvitationMedia
+    + deleteMedia(id): void
+  }
 }
 
 package "Acceso a Datos" {
@@ -326,6 +489,17 @@ package "Acceso a Datos" {
     + create(landingId, data): Media
   }
 
+  interface InvitationRepositoryInterface {
+    + findBySlug(slug): ?Invitation
+    + create(data): Invitation
+    + update(id, data): Invitation
+  }
+
+  interface InvitationMediaRepositoryInterface {
+    + findByInvitation(invitationId): Collection
+    + create(invitationId, data): InvitationMedia
+  }
+
   class EloquentLandingRepository {
     - model: Landing
   }
@@ -334,8 +508,18 @@ package "Acceso a Datos" {
     - model: Media
   }
 
+  class EloquentInvitationRepository {
+    - model: Invitation
+  }
+
+  class EloquentInvitationMediaRepository {
+    - model: InvitationMedia
+  }
+
   EloquentLandingRepository ..|> LandingRepositoryInterface
   EloquentMediaRepository ..|> MediaRepositoryInterface
+  EloquentInvitationRepository ..|> InvitationRepositoryInterface
+  EloquentInvitationMediaRepository ..|> InvitationMediaRepositoryInterface
 }
 
 package "Modelos" {
@@ -343,14 +527,21 @@ package "Modelos" {
   class Landing
   class Theme
   class Media
+  class Invitation
+  class InvitationMedia
 }
 
 LandingController --> LandingService : uses
 MediaController --> MediaService : uses
+InvitationController --> InvitationService : uses
+InvitationMediaController --> InvitationMediaService : uses
 
 LandingService --> LandingRepositoryInterface : depends on
 LandingService --> MediaService : uses
 MediaService --> MediaRepositoryInterface : depends on
+InvitationService --> InvitationRepositoryInterface : depends on
+InvitationService --> InvitationMediaService : uses
+InvitationMediaService --> InvitationMediaRepositoryInterface : depends on
 
 LandingRepositoryInterface --> Landing : works with
 MediaRepositoryInterface --> Media : works with

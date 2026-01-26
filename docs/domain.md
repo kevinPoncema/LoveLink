@@ -118,6 +118,7 @@ Imágenes asociadas a una landing.
 | `id` | INT | PK, AUTO_INCREMENT |
 | `landing_id` | INT | FK → Landings |
 | `file_path` | VARCHAR(500) | URL del archivo |
+| `public_url` | VARCHAR(500) | URL pública (CDN/storage) |
 | `type` | ENUM | 'image' (MVP) |
 | `mime_type` | VARCHAR(50) | Ej: image/jpeg |
 | `file_size` | INT | Bytes |
@@ -130,6 +131,80 @@ Imágenes asociadas a una landing.
 - Tipos: JPG, PNG, WebP
 - Tamaño máximo: 5 MB
 - Soft delete lógico
+
+---
+
+### SystemControl
+
+Entidad de configuración del sistema para controlar límites y metadatos de media.
+
+| Campo | Tipo | Restricción |
+|-------|------|------------|
+| `id` | INT | PK, AUTO_INCREMENT |
+| `max_images_per_landing` | INT | DEFAULT 50 |
+| `max_file_size_mb` | INT | DEFAULT 5 |
+| `allowed_mime` | JSON | Lista de MIME permitidos |
+| `thumbnails_enabled` | BOOLEAN | DEFAULT TRUE |
+| `gif_enabled` | BOOLEAN | DEFAULT FALSE (futuro) |
+| `updated_at` | TIMESTAMP | Automático |
+
+**Notas:**
+- Una sola fila de configuración global (puede versionarse a futuro).
+- Controla validaciones de subida y generación de thumbnails.
+
+---
+
+### Invitation
+
+Página de invitación (San Valentín u otros eventos) con mensajes personalizados.
+
+| Campo | Tipo | Restricción |
+|-------|------|------------|
+| `id` | INT | PK, AUTO_INCREMENT |
+| `user_id` | INT | FK → Users (NOT NULL) |
+| `landing_id` | INT | FK → Landings (nullable) |
+| `slug` | VARCHAR(50) | UNIQUE, NOT NULL |
+| `title` | VARCHAR(200) | DEFAULT '¿Quieres ser mi San Valentín?' |
+| `yes_message` | VARCHAR(100) | DEFAULT 'Sí' |
+| `no_messages` | JSON | Lista de mensajes negativos |
+| `is_published` | BOOLEAN | DEFAULT TRUE |
+| `created_at` | TIMESTAMP | Automático |
+| `updated_at` | TIMESTAMP | Automático |
+| `deleted_at` | TIMESTAMP | Soft delete |
+
+**Valores por defecto de `no_messages`:**
+```json
+["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"]
+```
+
+**Restricciones:**
+- Slug único para acceso público
+- `landing_id` nullable: puede existir independiente de landing
+- JSON simple para mensajes de "No" (no rompe 3NF, lista atómica)
+
+---
+
+### InvitationMedia
+
+Elementos multimedia (GIFs, imágenes) para invitaciones.
+
+| Campo | Tipo | Restricción |
+|-------|------|------------|
+| `id` | INT | PK, AUTO_INCREMENT |
+| `invitation_id` | INT | FK → Invitations |
+| `file_path` | VARCHAR(500) | Ruta del archivo |
+| `public_url` | VARCHAR(500) | URL pública (CDN) |
+| `type` | ENUM | 'image', 'gif' |
+| `mime_type` | VARCHAR(50) | Ej: image/gif |
+| `file_size` | INT | Bytes |
+| `sort_order` | INT | Orden de visualización |
+| `is_active` | BOOLEAN | DEFAULT TRUE |
+| `created_at` | TIMESTAMP | Automático |
+
+**Restricciones:**
+- Máximo 10 elementos multimedia por invitación
+- Tipos permitidos: image/gif, image/png, image/jpeg, image/webp
+- Tamaño máximo: 10 MB (GIFs pueden ser más pesados)
 
 ---
 
@@ -173,12 +248,25 @@ Imágenes asociadas a una landing.
 │ id (PK)                        │
 │ landing_id (FK)                │
 │ file_path                      │
+│ public_url                     │
 │ type (image)                   │
 │ mime_type                      │
 │ file_size                      │
 │ sort_order                     │
 │ is_active                      │
 │ created_at                     │
+└────────────────────────────────┘
+
+┌────────────────────────────────┐
+│      SYSTEM_CONTROL            │
+├────────────────────────────────┤
+│ id (PK)                        │
+│ max_images_per_landing         │
+│ max_file_size_mb               │
+│ allowed_mime (JSON)            │
+│ thumbnails_enabled             │
+│ gif_enabled                    │
+│ updated_at                     │
 └────────────────────────────────┘
 
            M:1 ────────────┐
@@ -194,6 +282,42 @@ Imágenes asociadas a una landing.
 │ bg_color                       │
 │ bg_image_url                   │
 │ css_class                      │
+│ is_active                      │
+│ created_at                     │
+└────────────────────────────────┘
+
+[USERS] ────────┐
+                │
+                │ 1:N (user_id)
+                │
+┌────────────────────────────────────────────┐
+│          INVITATIONS                       │
+├────────────────────────────────────────────┤
+│ id (PK)                                    │
+│ user_id (FK)                               │
+│ landing_id (FK, nullable)                  │
+│ slug (UNIQUE)                              │
+│ title                                      │
+│ yes_message                                │
+│ no_messages (JSON)                         │
+│ is_published                               │
+│ created_at, updated_at                     │
+│ deleted_at (soft delete)                   │
+└────────────────────────────────────────────┘
+           │
+           │ 1:N (invitation_id)
+           │
+┌────────────────────────────────┐
+│     INVITATION_MEDIA           │
+├────────────────────────────────┤
+│ id (PK)                        │
+│ invitation_id (FK)             │
+│ file_path                      │
+│ public_url                     │
+│ type (image/gif)               │
+│ mime_type                      │
+│ file_size                      │
+│ sort_order                     │
 │ is_active                      │
 │ created_at                     │
 └────────────────────────────────┘
@@ -277,6 +401,73 @@ public function landing(): BelongsTo
 
 ---
 
+### User ↔ Invitation (1:N)
+
+- Un usuario puede crear múltiples invitaciones
+- Cada invitación pertenece a un usuario
+- ON DELETE CASCADE: Al borrar usuario, se borran todas sus invitaciones
+
+```php
+// User.php
+public function invitations(): HasMany
+{
+    return $this->hasMany(Invitation::class);
+}
+
+// Invitation.php
+public function user(): BelongsTo
+{
+    return $this->belongsTo(User::class);
+}
+```
+
+---
+
+### Invitation ↔ InvitationMedia (1:N)
+
+- Una invitación tiene múltiples elementos multimedia (GIFs/imágenes)
+- Los elementos multimedia no existen sin invitación
+- ON DELETE CASCADE: Al borrar invitación, se borran sus multimedia
+
+```php
+// Invitation.php
+public function media(): HasMany
+{
+    return $this->hasMany(InvitationMedia::class)
+        ->where('is_active', true)
+        ->orderBy('sort_order');
+}
+
+// InvitationMedia.php
+public function invitation(): BelongsTo
+{
+    return $this->belongsTo(Invitation::class);
+}
+```
+
+---
+
+### Invitation ↔ Landing (opcional, N:1)
+
+- Una invitación puede estar vinculada a una landing (nullable)
+- Permite crear invitaciones independientes o asociadas a una landing específica
+
+```php
+// Invitation.php
+public function landing(): BelongsTo
+{
+    return $this->belongsTo(Landing::class);
+}
+
+// Landing.php
+public function invitations(): HasMany
+{
+    return $this->hasMany(Invitation::class);
+}
+```
+
+---
+
 ## Reglas de Negocio
 
 ### RN1: Generación de Slug
@@ -311,6 +502,7 @@ Implementación:
 - Un usuario puede gestionar varias landings
 - Validación en LandingService::createNewLanding()
 ```
+ no # Modelo de Dominio - UsPage
 
 ---
 
@@ -364,10 +556,38 @@ Máximo 50 imágenes por landing.
 
 ```
 Validación en MediaService::uploadImage()
+- Leer límites desde SystemControl (max_images_per_landing, max_file_size_mb, allowed_mime)
 - Contar media activas: Media::where('landing_id', $id)
-                              ->where('is_active', true)
-                              ->count()
-- Si count >= 50, rechazar nueva carga
+                             ->where('is_active', true)
+                             ->count()
+- Si count >= max_images_per_landing, rechazar carga
+- Validar tamaño y MIME contra configuración
+```
+
+---
+
+### RN7: Invitaciones Personalizadas
+
+Entidad independiente para crear invitaciones (ej: San Valentín) con mensajes personalizables.
+
+```
+Características:
+- Título personalizado (default: "¿Quieres ser mi San Valentín?")
+- Mensaje de respuesta afirmativa (default: "Sí")
+- Lista de mensajes de respuesta negativa (JSON array)
+  Default: ["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"]
+- Slug único para URL pública (/invitaciones/{slug})
+- Multimedia independiente: GIFs e imágenes (max 10 elementos)
+- Tamaño máximo GIF: 10MB
+- Puede vincularse opcionalmente a una Landing (landing_id nullable)
+- is_published controla visibilidad pública
+- Soft delete habilitado
+
+Validación en InvitationService::createInvitation():
+- Slug único generado automáticamente
+- Máximo 10 elementos multimedia por invitación
+- GIFs solo permitidos si `gif_enabled` en SystemControl es true
+- Validar tamaño y MIME contra configuración
 ```
 
 ---

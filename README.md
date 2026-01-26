@@ -27,12 +27,13 @@ Este es un **MVP (Minimum Viable Product)** creado como proyecto de portafolio p
 ## 📋 Características Principales
 
 - ✅ **Autenticación:** Registro e inicio de sesión con Laravel Breeze.
-- ✅ **Crear Landing Page:** Un usuario crea una landing page conmemorativa con slug único.
+- ✅ **Crear Landings:** Un usuario puede crear múltiples landings con slug único.
 - ✅ **Personalización Básica:** Editar nombres, fecha de aniversario, bio, colores y fondos del tema.
-- ✅ **Galería de Fotos:** Subir imágenes (JPG, PNG, WebP, máx. 5 MB).
+- ✅ **Galería de Fotos:** Subir imágenes (JPG, PNG, WebP, máx. 5 MB) con URL pública y thumbnails opcionales.
 - ✅ **Temas Personalizables:** Catálogo de temas predefinidos con colores y fondos editables.
+- ✅ **Invitación San Valentín:** Página especial con mensaje personalizable y botones (futuro: GIFs personalizados).
 - ✅ **Visualización Pública:** Acceso a landing via URL amigable: `/p/{slug}`.
-- ✅ **Arquitectura Profesional:** Patrón Repository + Service para código mantenible.
+- ✅ **Arquitectura Profesional:** Patrón Repository + Service para código mantenible; SystemControl centraliza límites de media.
 
 ---
 
@@ -351,7 +352,9 @@ php artisan telescope:publish
 Consulta la carpeta `docs/` para detalles técnicos:
 
 - **[requirements.md](docs/requirements.md)** - Requerimientos funcionales (RF) y no funcionales (RNF)
-- **[domain.md](docs/domain.md)** - Modelo de dominio, entidades, diagramas ER y patrones
+- **[domain.md](docs/domain.md)** - Modelo de dominio, entidades, ER, SystemControl
+- **[use-cases.md](docs/use-cases.md)** - Casos de uso (incluye invitación San Valentín)
+- **[class-diagram.md](docs/class-diagram.md)** - Diagramas UML de clases, services y repositorios
 
 **Nota:** Este es un MVP; la documentación se enfoca en lo esencial.
 

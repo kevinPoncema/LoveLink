@@ -58,6 +58,7 @@ El usuario gestiona imágenes en su landing.
 - **RF4.3** - Reordenamiento drag & drop
 - **RF4.4** - Eliminación lógica
 - **RF4.5** - **(OPCIONAL)** Thumbnails automáticos
+- **RF4.6** - Guardar URL pública (CDN/storage) de cada imagen
 
 ---
 
@@ -83,12 +84,29 @@ Visitantes acceden a landings publicadas.
 
 ---
 
-### RF7: Validación y Manejo de Errores
+### RF7: Invitaciones Personalizadas
 
-- **RF7.1** - Slug: unicidad, formato validado
-- **RF7.2** - Email: formato correcto
-- **RF7.3** - Archivos: tipo, tamaño, MIME type
-- **RF7.4** - Mensajes claros al usuario
+Entidad independiente para crear invitaciones (ej: San Valentín) con mensajes personalizables y multimedia.
+
+- **RF7.1** - Título personalizado (default: "¿Quieres ser mi San Valentín?")
+- **RF7.2** - Mensaje de respuesta afirmativa editable (default: "Sí")
+- **RF7.3** - Lista de mensajes de respuesta negativa personalizables (default: ["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"])
+- **RF7.4** - Slug único generado automáticamente para URL pública (`/invitaciones/{slug}`)
+- **RF7.5** - Soporte para multimedia (imágenes y GIFs, max 10 elementos)
+- **RF7.6** - GIFs habilitados hasta 10MB cuando `gif_enabled` en SystemControl es `true`
+- **RF7.7** - Control de publicación con `is_published`
+- **RF7.8** - Vinculación opcional con Landing existente (`landing_id` nullable)
+- **RF7.9** - Soft delete habilitado
+- **RF7.10** - Gestión independiente de multimedia con `InvitationMedia`
+
+---
+
+### RF8: Validación y Manejo de Errores
+
+- **RF8.1** - Slug: unicidad, formato validado
+- **RF8.2** - Email: formato correcto
+- **RF8.3** - Archivos: tipo, tamaño, MIME type
+- **RF8.4** - Mensajes claros al usuario
 
 ---
 
@@ -106,10 +124,15 @@ Visitantes acceden a landings publicadas.
 ### RNF2: Base de Datos (3NF)
 
 - **RNF2.1** - Cumplimiento de Tercera Forma Normal
-- **RNF2.2** - Tablas: Users, Landings, Themes, Media
-- **RNF2.3** - Relaciones definidas: 1:N (User-Landing), M:1 (Landing-Theme), 1:N (Landing-Media)
-- **RNF2.4** - Índices en: slug, user_id, theme_id
-- **RNF2.5** - Soft delete en Users y Landings
+- **RNF2.2** - Tablas: Users, Landings, Themes, Media, SystemControl, Invitations, InvitationMedia
+- **RNF2.3** - Relaciones definidas: 
+  - 1:N (User-Landing, User-Invitation)
+  - M:1 (Landing-Theme)
+  - 1:N (Landing-Media, Invitation-InvitationMedia)
+  - N:1 opcional (Invitation-Landing, nullable)
+- **RNF2.4** - SystemControl: configuración global para límites de media (máx. imágenes, tamaño, MIME permitidos, thumbnails, GIF enabled)
+- **RNF2.5** - Índices en: slug, user_id, theme_id, landing_id, invitation_id
+- **RNF2.6** - Soft delete en Users, Landings, Invitations
 
 ---
 
