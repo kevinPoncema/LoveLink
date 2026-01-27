@@ -442,3 +442,35 @@ const props = withDefaults(defineProps<Props>(), {
 - Soporte para lectores de pantalla
 
 Este documento sirve como guía base para el desarrollo frontend. La arquitectura está diseñada para ser escalable, mantenible y eficiente, aprovechando al máximo las capacidades de Laravel Inertia + Vue 3.
+
+## Solución de Problemas Comunes
+
+### Error 401 en Rutas API (Unauthenticated)
+
+**Problema:**
+Al intentar acceder a rutas protegidas de la API (`/api/themes`, etc.) desde el frontend, se recibía un error `401 Unauthenticated` a pesar de estar logueado en la aplicación web.
+
+**Causa:**
+Laravel Sanctum por defecto espera un token Bearer en el header `Authorization` para rutas API. Sin embargo, en una arquitectura híbrida SPA/Monolito como esta (Inertia), la autenticación se maneja vía cookies de sesión (web guard), y Sanctum no estaba configurado para aceptar estas cookies en las rutas API.
+
+**Solución:**
+
+1. **Backend (`bootstrap/app.php`):**
+   Se agregó el middleware `EnsureFrontendRequestsAreStateful` al grupo de rutas API. Esto permite que Sanctum autentique usuarios usando las cookies de sesión de Laravel en lugar de requerir un token.
+
+   ```php
+   $middleware->api(prepend: [
+       \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+   ]);
+   ```
+
+2. **Frontend (`resources/js/services/ApiClient.ts`):**
+   Se refactorizó el cliente API para asegurar que las cookies se envíen en cada petición y mejorar el manejo de errores.
+
+   - Se configuró `withCredentials: true` en la instancia de Axios.
+   - Se añadió un interceptor para inyectar el token CSRF (`X-XSRF-TOKEN` o `X-CSRF-TOKEN`).
+   - Se eliminó la lógica innecesaria de intentar enviar tokens Bearer manualmente.
+   - Se mejoró el tipado con TypeScript.
+
+**Resultado:**
+Las peticiones a la API ahora funcionan correctamente autenticándose con la sesión del usuario logueado en Inertia, sin necesidad de gestión manual de tokens JWT.
