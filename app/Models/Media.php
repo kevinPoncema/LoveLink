@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Media extends Model
 {
@@ -26,14 +26,9 @@ class Media extends Model
      * Los atributos que se pueden asignar masivamente
      */
     protected $fillable = [
-        'landing_id',
         'file_path',
-        'public_url',
         'type',
-        'mime_type',
         'file_size',
-        'sort_order',
-        'is_active',
     ];
 
     /**
@@ -43,44 +38,34 @@ class Media extends Model
     {
         return [
             'file_size' => 'integer',
-            'sort_order' => 'integer',
-            'is_active' => 'boolean',
             'created_at' => 'datetime',
         ];
     }
 
     /**
-     * Relación: Un media pertenece a una landing
+     * Relación: Media pertenece a múltiples landings via pivot
      */
-    public function landing(): BelongsTo
+    public function landings(): BelongsToMany
     {
-        return $this->belongsTo(Landing::class);
+        return $this->belongsToMany(Landing::class, 'landing_media')
+            ->withPivot('sort_order')
+            ->orderBy('landing_media.sort_order');
     }
 
     /**
-     * Scope para obtener solo media activos
+     * Relación: Media pertenece a múltiples invitations via pivot
      */
-    public function scopeActive($query)
+    public function invitations(): BelongsToMany
     {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope para ordenar por sort_order
-     */
-    public function scopeOrdered($query)
-    {
-        return $query->orderBy('sort_order');
+        return $this->belongsToMany(Invitation::class, 'invitation_media');
     }
 
     /**
      * Verifica si el archivo es una imagen válida
      */
-    public function isValidImage(): bool
+    public function isValidMedia(): bool
     {
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
-
-        return in_array($this->mime_type, $allowedMimes);
+        return in_array($this->type, ['image', 'gif']);
     }
 
     /**
@@ -89,5 +74,13 @@ class Media extends Model
     public function getFileSizeInMb(): float
     {
         return round($this->file_size / 1024 / 1024, 2);
+    }
+
+    /**
+     * Scope para filtrar por tipo
+     */
+    public function scopeByType($query, string $type)
+    {
+        return $query->where('type', $type);
     }
 }

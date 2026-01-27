@@ -6,12 +6,11 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Landing extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     /**
      * Los atributos que se pueden asignar masivamente
@@ -23,7 +22,6 @@ class Landing extends Model
         'couple_names',
         'anniversary_date',
         'bio_text',
-        'is_published',
     ];
 
     /**
@@ -33,10 +31,8 @@ class Landing extends Model
     {
         return [
             'anniversary_date' => 'date',
-            'is_published' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
-            'deleted_at' => 'datetime',
         ];
     }
 
@@ -57,29 +53,13 @@ class Landing extends Model
     }
 
     /**
-     * Relación: Una landing tiene múltiples media
+     * Relación: Una landing tiene múltiples media via pivot
      */
-    public function media(): HasMany
+    public function media(): BelongsToMany
     {
-        return $this->hasMany(Media::class)
-            ->where('is_active', true)
-            ->orderBy('sort_order');
-    }
-
-    /**
-     * Relación: Una landing puede tener múltiples invitaciones
-     */
-    public function invitations(): HasMany
-    {
-        return $this->hasMany(Invitation::class);
-    }
-
-    /**
-     * Scope para obtener solo landings publicadas
-     */
-    public function scopePublished($query)
-    {
-        return $query->where('is_published', true);
+        return $this->belongsToMany(Media::class, 'landing_media')
+            ->withPivot('sort_order')
+            ->orderBy('landing_media.sort_order');
     }
 
     /**
@@ -96,13 +76,5 @@ class Landing extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
-    }
-
-    /**
-     * Verifica si la landing es visible públicamente
-     */
-    public function isPubliclyVisible(): bool
-    {
-        return $this->is_published && ! $this->trashed();
     }
 }

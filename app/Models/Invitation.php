@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invitation extends Model
@@ -17,7 +17,6 @@ class Invitation extends Model
      */
     protected $fillable = [
         'user_id',
-        'landing_id',
         'slug',
         'title',
         'yes_message',
@@ -58,21 +57,11 @@ class Invitation extends Model
     }
 
     /**
-     * Relación: Una invitación puede pertenecer a una landing (opcional)
+     * Relación: Una invitación tiene múltiples media via pivot
      */
-    public function landing(): BelongsTo
+    public function media(): BelongsToMany
     {
-        return $this->belongsTo(Landing::class);
-    }
-
-    /**
-     * Relación: Una invitación tiene múltiples medios
-     */
-    public function media(): HasMany
-    {
-        return $this->hasMany(InvitationMedia::class)
-            ->where('is_active', true)
-            ->orderBy('sort_order');
+        return $this->belongsToMany(Media::class, 'invitation_media');
     }
 
     /**
@@ -81,22 +70,6 @@ class Invitation extends Model
     public function scopePublished($query)
     {
         return $query->where('is_published', true);
-    }
-
-    /**
-     * Scope para invitaciones independientes (sin landing)
-     */
-    public function scopeStandalone($query)
-    {
-        return $query->whereNull('landing_id');
-    }
-
-    /**
-     * Scope para invitaciones vinculadas a landing
-     */
-    public function scopeLinkedToLanding($query)
-    {
-        return $query->whereNotNull('landing_id');
     }
 
     /**
@@ -125,13 +98,5 @@ class Invitation extends Model
     public function isPubliclyVisible(): bool
     {
         return $this->is_published && ! $this->trashed();
-    }
-
-    /**
-     * Verifica si está vinculada a una landing
-     */
-    public function isLinkedToLanding(): bool
-    {
-        return ! is_null($this->landing_id);
     }
 }
