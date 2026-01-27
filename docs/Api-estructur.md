@@ -71,8 +71,9 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 | Ruta | Método | Qué Hace | Qué Devuelve |
 |------|--------|----------|--------------|
 | `/api/landings` | GET | Lista landings del usuario autenticado | Colección de landings |
-| `/api/landings` | POST | Crea nueva landing con slug único | Landing creado |
-| `/api/landings/{id}` | GET | Muestra detalles de landing específico | Landing con media y tema |
+| `/api/landings` | POST | Crea nueva landing con slug único o enviado | Landing creado |
+| `/api/landings/{id}` | GET | Muestra detalles de landing (PÚBLICO) | Landing con media y tema |
+| `/api/landings/{slug}` | GET | Muestra landing por slug (PÚBLICO) | Landing con media y tema |
 | `/api/landings/{id}` | PUT | Actualiza datos de la landing | Landing actualizado |
 | `/api/landings/{id}` | DELETE | Elimina landing del usuario | Confirmación eliminación |
 | `/api/landings/{id}/media` | POST | Vincula media a landing con orden | Media attachado |
@@ -92,8 +93,9 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 | Ruta | Método | Qué Hace | Qué Devuelve |
 |------|--------|----------|--------------|
 | `/api/invitations` | GET | Lista invitations del usuario | Colección de invitaciones |
-| `/api/invitations` | POST | Crea invitation con slug único | Invitation creado |
-| `/api/invitations/{id}` | GET | Muestra detalles de invitation | Invitation con media |
+| `/api/invitations` | POST | Crea invitation con slug único o enviado | Invitation creado |
+| `/api/invitations/{id}` | GET | Muestra detalles de invitation (PÚBLICO) | Invitation con media |
+| `/api/invitations/{slug}` | GET | Muestra invitation por slug (PÚBLICO) | Invitation con media |
 | `/api/invitations/{id}` | PUT | Actualiza datos de invitation | Invitation actualizado |
 | `/api/invitations/{id}` | DELETE | Soft delete de invitation | Confirmación eliminación |
 | `/api/invitations/{id}/media` | POST | Vincula media a invitation | Media attachado |
@@ -196,18 +198,18 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - Autoriza: usuario propietario
 
 **LandingService:**
-- **createLanding:** Usuario + datos → Landing con slug único generado
+- **createLanding:** Usuario + datos → Landing con slug generado si no se envió
 - **updateLanding:** ID + datos + usuario → Landing actualizado
 - **deleteLanding:** ID + usuario → boolean éxito
-- **attachMedia:** Landing ID + media ID + orden → void
-- **detachMedia:** Landing ID + media ID → void
-- **reorderMedia:** Landing ID + array orden → void
-- **generateUniqueSlug:** Nombres pareja → slug único
+- **generateUniqueSlug:** Nombres pareja → slug único (solo si no se envió slug)
+- **validateSlugUniqueness:** Slug + user ID → boolean disponible
 
 **LandingMediaService:**
 - **validateMediaLimit:** Landing ID → boolean si puede agregar más
 - **getNextSortOrder:** Landing ID → próximo número orden
-- **updateMediaOrder:** Landing ID + orders → void
+- **attachMediaToLanding:** Landing ID + media ID + user ID → void (usa MediaServices)
+- **detachMediaFromLanding:** Landing ID + media ID + user ID → void (usa MediaServices)
+- **reorderLandingMedia:** Landing ID + array orden + user ID → void (usa MediaRepository)
 
 **LandingRepository:**
 - **findByUser:** User ID → Colección landings usuario
@@ -229,11 +231,17 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - Autoriza: usuario autenticado
 
 **MediaService:**
-- **uploadMedia:** UploadedFile → Media guardado con path
+- **uploadMedia:** UploadedFile + user ID → Media guardado con path
 - **deleteMedia:** Media ID + usuario → boolean éxito
 - **validateFile:** File → boolean si cumple restricciones
 - **generateFilePath:** File → string path único
 - **isMediaInUse:** Media ID → boolean si está vinculado
+- **attachToLanding:** Landing ID + media ID + user ID + orden → void
+- **detachFromLanding:** Landing ID + media ID + user ID → void
+- **attachToInvitation:** Invitation ID + media ID + user ID → void
+- **detachFromInvitation:** Invitation ID + media ID + user ID → void
+- **validateUserOwnership:** Media ID + user ID → boolean propietario
+- **validateMediaLimit:** Entity type + entity ID + limit → boolean puede agregar
 
 **MediaRepository:**
 - **findUserAccessible:** User ID → Media del usuario via pivot tables
@@ -267,16 +275,16 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - Autoriza: usuario propietario de invitation y media
 
 **InvitationService:**
-- **createInvitation:** Usuario + datos → Invitation con slug y defaults
+- **createInvitation:** Usuario + datos → Invitation con slug generado si no se envió
 - **updateInvitation:** ID + datos + usuario → Invitation actualizado
 - **deleteInvitation:** ID + usuario → boolean éxito (soft delete)
-- **attachMedia:** Invitation ID + media ID → void
-- **detachMedia:** Invitation ID + media ID → void
-- **generateUniqueSlug:** Title → slug único
+- **generateUniqueSlug:** Title → slug único (solo si no se envió slug)
+- **validateSlugUniqueness:** Slug + user ID → boolean disponible
 
 **InvitationMediaService:**
 - **validateMediaLimit:** Invitation ID → boolean si puede agregar más
-- **attachMedia:** Invitation ID + media ID → void
+- **attachMediaToInvitation:** Invitation ID + media ID + user ID → void (usa MediaServices)
+- **detachMediaFromInvitation:** Invitation ID + media ID + user ID → void (usa MediaServices)
 
 **InvitationRepository:**
 - **findByUser:** User ID → Colección invitations usuario (incluyendo soft deleted)
@@ -333,6 +341,7 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 
 **StoreLandingRequest:**
 - `couple_names`: requerido, máximo 200 caracteres
+- `slug`: opcional, si no se envía se genera automáticamente desde couple_names
 - `anniversary_date`: requerido, formato fecha válida
 - `theme_id`: requerido, existe en tabla themes
 - `bio_text`: opcional, tipo texto largo
@@ -357,7 +366,8 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 ### 💌 Invitations
 
 **StoreInvitationRequest:**
-- `title`: opcional, máximo 200 caracteres, default "¿Quieres ser mi San Valentín?"
+- `title`: requerido, máximo 200 caracteres
+- `slug`: opcional, si no se envía se genera automáticamente desde title
 - `yes_message`: opcional, máximo 100 caracteres, default "Sí"
 - `no_messages`: opcional, array de strings, default ["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"]
 
@@ -414,6 +424,12 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 | `findById` | int id | Media o null | Busca media por ID |
 | `delete` | int id | bool | Elimina media |
 | `isLinkedToAnyEntity` | int mediaId | bool | Verifica si está en uso |
+| `attachToLanding` | int landingId, int mediaId, int order | void | Vincula media a landing |
+| `detachFromLanding` | int landingId, int mediaId | void | Desvincula media de landing |
+| `attachToInvitation` | int invitationId, int mediaId | void | Vincula media a invitation |
+| `detachFromInvitation` | int invitationId, int mediaId | void | Desvincula media de invitation |
+| `updateLandingMediaOrder` | int landingId, array orders | void | Actualiza orden media landing |
+| `countMediaByEntity` | string entityType, int entityId | int | Cuenta media vinculado a entidad |
 
 ### 💌 InvitationRepository
 
@@ -457,7 +473,7 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 |--------|--------|----------|----------|
 | `index` | Request autenticado | JSON landings | Lista landings usuario |
 | `store` | StoreLandingRequest | JSON landing | Crea landing con slug |
-| `show` | Request + id | JSON landing | Detalles landing |
+| `show` | Request + id/slug (PÚBLICO) | JSON landing | Detalles landing con media y tema |
 | `update` | UpdateLandingRequest + id | JSON landing | Actualiza landing |
 | `destroy` | Request + id | JSON success | Elimina landing |
 
@@ -482,8 +498,8 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
 | `index` | Request autenticado | JSON invitations | Lista invitations usuario |
-| `store` | StoreInvitationRequest | JSON invitation | Crea invitation |
-| `show` | Request + id | JSON invitation | Detalles invitation |
+| `store` | StoreInvitationRequest | JSON invitation | Crea invitation con título |
+| `show` | Request + id/slug (PÚBLICO) | JSON invitation | Detalles invitation con media |
 | `update` | UpdateInvitationRequest + id | JSON invitation | Actualiza invitation |
 | `destroy` | Request + id | JSON success | Soft delete invitation |
 
