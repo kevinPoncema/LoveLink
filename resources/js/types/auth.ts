@@ -49,3 +49,37 @@ export type DashboardStats = {
     invitations: number;
     media: number;
 };
+
+// Media types
+export type Media = {
+    id: number;
+    filename: string;
+    original_filename: string;
+    path: string;
+    public_url: string;
+    mime_type: string;
+    size_bytes: number; // Cambiado de 'size' a 'size_bytes' para consistencia
+    description?: string;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
+};
+
+// Theme types  
+export type Theme = {
+    id: number;
+    name: string;
+    description?: string;
+    primary_color: string;
+    secondary_color: string;
+    bg_color: string;
+    bg_image_url?: string;
+    bg_image_media_id?: number;
+    css_class: string;
+    is_system: boolean;
+    user_id?: number;
+    created_at: string;
+    updated_at: string;
+    // Relaciones
+    bg_image?: Media;
+};

@@ -51,11 +51,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return response()->json(auth()->user());
     })->name('user');
 
+    // Gestión de Temas
+    Route::get('/themes', function () {
+        return Inertia::render('Themes');
+    })->name('themes.index');
+
+    // Gestión de Media
+    Route::get('/media', function () {
+        return Inertia::render('Media');
+    })->name('media.index');
+
     // TODO: Añadir más rutas protegidas aquí cuando se implementen las páginas
     // Route::get('/landings', [LandingController::class, 'index'])->name('landings.index');
     // Route::get('/invitations', [InvitationController::class, 'index'])->name('invitations.index');
-    // Route::get('/media', [MediaController::class, 'index'])->name('media.index');
-    // Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index');
 });
 
 require __DIR__.'/settings.php';

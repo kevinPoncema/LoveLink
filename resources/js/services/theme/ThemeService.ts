@@ -40,7 +40,7 @@ export class ThemeService {
      * Obtener todos los temas disponibles (sistema + usuario)
      */
     async getAvailableThemes(): Promise<Theme[]> {
-        const response = await apiClient.get<Theme[]>('/themes');
+        const response = await apiClient.get<Theme[]>('/api/themes');
         return response.data || [];
     }
 
@@ -48,7 +48,7 @@ export class ThemeService {
      * Obtener un tema específico por ID
      */
     async getTheme(id: number): Promise<Theme> {
-        const response = await apiClient.get<Theme>(`/themes/${id}`);
+        const response = await apiClient.get<Theme>(`/api/themes/${id}`);
         if (!response.data) {
             throw new Error('Tema no encontrado');
         }
@@ -59,33 +59,30 @@ export class ThemeService {
      * Crear nuevo tema personalizado
      */
     async createTheme(data: CreateThemeData): Promise<Theme> {
-        let response: ApiResponse<ThemeUploadResponse>;
-
+        const formData = new FormData();
+        
+        // Agregar datos básicos
+        formData.append('name', data.name);
+        formData.append('primary_color', data.primary_color);
+        formData.append('secondary_color', data.secondary_color);
+        formData.append('bg_color', data.bg_color);
+        formData.append('css_class', data.css_class);
+        
+        if (data.description) {
+            formData.append('description', data.description);
+        }
+        
+        // Agregar imagen si existe
         if (data.bg_image_file) {
-            // Si hay archivo, usar FormData
-            const formData = new FormData();
-            formData.append('name', data.name);
-            formData.append('primary_color', data.primary_color);
-            formData.append('secondary_color', data.secondary_color);
-            formData.append('bg_color', data.bg_color);
-            formData.append('css_class', data.css_class);
-            
-            if (data.description) {
-                formData.append('description', data.description);
-            }
-            
             formData.append('bg_image_file', data.bg_image_file);
-
-            response = await apiClient.postFormData<ThemeUploadResponse>('/themes', formData);
-        } else {
-            // Sin archivo, usar JSON normal
-            response = await apiClient.post<ThemeUploadResponse>('/themes', data);
         }
 
+        const response = await apiClient.postFormData<ThemeUploadResponse>('/api/themes', formData);
+        
         if (!response.data?.theme) {
             throw new Error('Error creando el tema');
         }
-
+        
         return response.data.theme;
     }
 
