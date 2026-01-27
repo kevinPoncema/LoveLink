@@ -161,8 +161,8 @@ Edita `.env` y configura:
 - `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
 - `MAIL_*` (si usas correo)
 - **Digital Ocean Spaces** (para almacenamiento de media):
-  - `AWS_ACCESS_KEY_ID`: Tu Access Key de DO Spaces
-  - `AWS_SECRET_ACCESS_KEY`: Tu Secret Key de DO Spaces
+  - `CLOUD_ACCESS_KEY_ID`: Tu Access Key de DO Spaces
+  - `CLOUD_SECRET_ACCESS_KEY`: Tu Secret Key de DO Spaces
   - `MEDIA_STORAGE_DRIVER=s3` (para producción) o `local` (para desarrollo)
 
 #### 5. Generar Clave de Aplicación
@@ -205,36 +205,60 @@ La aplicación estará disponible en `http://localhost:8000`.
 
 El proyecto está configurado para usar **Digital Ocean Spaces** (Amsterdam) para almacenamiento de imágenes en producción, con fallback local para desarrollo.
 
-### Configuración de Producción
+### 🚀 Configuración de Producción
+
+Para usar Digital Ocean Spaces en producción, configura estas variables en tu `.env`:
 
 ```bash
-# En .env para producción:
+# Cloud Storage Configuration (Multi-provider: Digital Ocean Spaces, AWS S3, etc.)
 MEDIA_STORAGE_DRIVER=s3
-AWS_ACCESS_KEY_ID=tu_do_spaces_access_key
-AWS_SECRET_ACCESS_KEY=tu_do_spaces_secret_key
-AWS_BUCKET=uspage-storage
+CLOUD_ACCESS_KEY_ID=tu_cloud_access_key
+CLOUD_SECRET_ACCESS_KEY=tu_cloud_secret_key
+CLOUD_DEFAULT_REGION=ams3
+CLOUD_BUCKET=uspage-storage
+CLOUD_URL=https://uspage-storage.ams3.digitaloceanspaces.com
+CLOUD_ENDPOINT=https://ams3.digitaloceanspaces.com
 ```
 
-### Configuración de Desarrollo
+### 🛠️ Configuración de Desarrollo
 
 ```bash
-# En .env para desarrollo:
+# En .env para desarrollo local:
 MEDIA_STORAGE_DRIVER=local
 ```
 
-### ¿Por qué Amsterdam?
+### 📋 Setup Digital Ocean Spaces
+
+1. **Crear Bucket en Digital Ocean:**
+   - Nombre: `uspage-storage`
+   - Región: Amsterdam (`ams3`)
+   - Acceso: Privado (recomendado para seguridad)
+
+2. **Generar API Keys:**
+   - Dashboard → API → Spaces Keys
+   - Crear nuevo par de claves
+   - Copiar Access Key ID y Secret Key
+
+3. **Probar Conexión:**
+   ```bash
+   php artisan test:cloud-storage
+   ```
+
+### 🌍 ¿Por qué Amsterdam?
 
 - ✅ **Latencia óptima**: ~20-30ms desde España
-- ✅ **Conectividad LATAM**: Excelentes rutas a América Latina
-- ✅ **Compliance EU**: Cumple con GDPR
-- ✅ **Costo-efectivo**: Mejor precio que AWS S3
+- ✅ **Conectividad LATAM**: Excelentes rutas a América Latina  
+- ✅ **Compliance EU**: Cumple con GDPR y normativas europeas
+- ✅ **Costo-efectivo**: Mejor precio que AWS S3 equivalente
+- ✅ **CDN global**: Red de distribución automática
 
-### Características
+### ⚙️ Características Técnicas
 
-- **Límite por imagen**: 10MB máximo
+- **Límite por imagen**: 10MB máximo por archivo
 - **Formatos soportados**: JPG, PNG, WebP, GIF
-- **CDN automático**: URLs optimizadas globalmente
+- **URLs firmadas**: Acceso seguro con expiración
 - **Backup automático**: Digital Ocean maneja redundancia
+- **Switching automático**: El sistema cambia entre local/cloud según configuración
 
 ---
 
@@ -273,9 +297,12 @@ php artisan tinker
 # Crear enlace simbólico para storage público (solo desarrollo)
 php artisan storage:link
 
-# Test de conectividad con Digital Ocean Spaces
+# Test de conectividad con Cloud Storage (Digital Ocean Spaces, AWS S3, etc.)
+php artisan test:cloud-storage
+
+# También puedes probar manualmente con Tinker
 php artisan tinker
-# Dentro de tinker: Storage::disk('media_cloud')->put('test.txt', 'Hello DO!');
+# Dentro de tinker: Storage::disk('media_cloud')->put('test.txt', 'Hello Cloud!');
 ```
 
 ### Frontend (Node.js)

@@ -72,12 +72,12 @@ return [
 
         'media_cloud' => [
             'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION', 'ams3'),
-            'bucket' => env('AWS_BUCKET', 'uspage-storage'),
-            'url' => env('AWS_URL'),
-            'endpoint' => env('AWS_ENDPOINT', 'https://ams3.digitaloceanspaces.com'),
+            'key' => env('CLOUD_ACCESS_KEY_ID'),
+            'secret' => env('CLOUD_SECRET_ACCESS_KEY'),
+            'region' => env('CLOUD_DEFAULT_REGION', 'ams3'),
+            'bucket' => env('CLOUD_BUCKET', 'uspage-storage'),
+            'url' => env('CLOUD_URL'),
+            'endpoint' => env('CLOUD_ENDPOINT', 'https://ams3.digitaloceanspaces.com'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'visibility' => 'public',
             'throw' => false,
