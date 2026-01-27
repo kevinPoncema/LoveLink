@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Themes\ThemeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,4 +26,9 @@ Route::group(['prefix' => 'auth'], function () {
 Route::group(['prefix' => 'auth', 'middleware' => 'auth:sanctum'], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+});
+
+// Protected themes routes
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::apiResource('themes', ThemeController::class);
 });
