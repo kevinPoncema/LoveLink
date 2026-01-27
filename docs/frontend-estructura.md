@@ -82,11 +82,37 @@ components/
 
 ### 5. `composables/` - Lógica Reutilizable
 
-**Composables actuales:**
+**Composables implementados:**
 - `useAppearance.ts` - Gestión de temas (light/dark/system)
 - `useCurrentUrl.ts` - Utilidades para URL actual
 - `useInitials.ts` - Generación de iniciales de usuario
 - `useTwoFactorAuth.ts` - Lógica de autenticación de dos factores
+- **`useAuth.ts`** - **NUEVO**: Gestión completa de autenticación
+- **`useDashboard.ts`** - **NUEVO**: Estadísticas y datos del dashboard
+
+**Nuevas características:**
+```typescript
+// useAuth.ts - Estado global de autenticación
+const { 
+  user,              // Usuario actual (reactivo)
+  isAuthenticated,   // Estado de autenticación (computed)
+  isLoading,         // Estado de carga
+  error,             // Errores de autenticación
+  login,             // Función de login
+  register,          // Función de registro
+  logout,            // Función de logout
+  checkAuth          // Verificar autenticación
+} = useAuth()
+
+// useDashboard.ts - Estadísticas del dashboard
+const {
+  stats,             // Estadísticas (landings, invitations, media)
+  isLoading,         // Estado de carga
+  error,             // Errores de carga
+  loadStats,         // Cargar estadísticas
+  refreshStats       // Refrescar datos
+} = useDashboard()
+```
 
 **Convenciones:**
 - Prefijo `use` para todos los composables
@@ -110,19 +136,75 @@ import { dashboard } from '@/routes'
 dashboard()
 ```
 
-### 7. `lib/` - Utilidades
+### 7. `services/` - Servicios API Organizados por Entidad
+
+**NUEVA IMPLEMENTACIÓN**: Servicios completamente estructurados por dominio:
+
+```
+services/
+├── ApiClient.ts                 # Cliente HTTP base con interceptors
+├── index.ts                     # Exportaciones centralizadas
+├── auth/AuthService.ts          # Autenticación y gestión de usuarios
+├── landing/LandingService.ts    # CRUD de landing pages
+├── invitation/InvitationService.ts # CRUD de invitaciones
+├── media/MediaService.ts        # Upload y gestión de archivos
+└── theme/ThemeService.ts        # CRUD de temas personalizados
+```
+
+**Características:**
+- **Cliente HTTP inteligente**: Interceptors automáticos para tokens y errores 401
+- **Validación de archivos**: Tipos MIME y tamaños permitidos
+- **Manejo de FormData**: Upload de archivos con progress
+- **Error handling**: Gestión centralizada de errores de red
+- **Singleton pattern**: Instancias únicas y reutilizables
+
+**Ejemplo de uso:**
+```typescript
+import { authService, landingService, mediaService } from '@/services'
+
+// Login
+const authResponse = await authService.login({ email, password })
+
+// Crear landing
+const landing = await landingService.createLanding({
+  couple_names: 'Juan & María',
+  anniversary_date: '2024-02-14',
+  theme_id: 1
+})
+
+// Upload media
+const media = await mediaService.uploadMedia(file)
+await landingService.attachMedia(landing.id, media.id)
+```
+
+### 8. `lib/` - Utilidades
 
 Contiene funciones auxiliares y utilidades generales:
 - `utils.ts` - Funciones de utilidad general
 
-### 8. `types/` - Definiciones TypeScript
+### 8. `lib/` - Utilidades
 
-**Tipos actuales:**
-- `auth.ts` - Tipos relacionados con autenticación
+Contiene funciones auxiliares y utilidades generales:
+- `utils.ts` - Funciones de utilidad general
+
+### 9. `types/` - Definiciones TypeScript
+
+**Tipos actualizados:**
+- `auth.ts` - Tipos completos de autenticación, API responses, dashboard stats
 - `navigation.ts` - Tipos de navegación
 - `ui.ts` - Tipos para componentes UI
 - `globals.d.ts` - Declaraciones globales
 - `vue-shims.d.ts` - Declaraciones para Vue
+
+**Nuevos tipos implementados:**
+```typescript
+// Autenticación
+export type LoginData = { email: string; password: string }
+export type RegisterData = { email: string; password: string; name?: string }
+export type AuthResponse = { user: User; token: string; message?: string }
+export type ApiResponse<T> = { data?: T; message?: string; errors?: Record<string, string[]> }
+export type DashboardStats = { landings: number; invitations: number; media: number }
+```
 
 ## Comunicación con el Backend
 

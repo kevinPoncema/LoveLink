@@ -10,8 +10,47 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Rutas de autenticación (públicas)
+Route::middleware('guest')->group(function () {
+    Route::get('/login', function () {
+        return Inertia::render('auth/Login', [
+            'canResetPassword' => Features::enabled(Features::resetPasswords()),
+            'canRegister' => Features::enabled(Features::registration()),
+            'status' => session('status'),
+        ]);
+    })->name('login');
+
+    Route::get('/register', function () {
+        return Inertia::render('auth/Register', [
+            'canLogin' => true,
+        ]);
+    })->name('register');
+
+    Route::get('/forgot-password', function () {
+        return Inertia::render('auth/ForgotPassword', [
+            'status' => session('status'),
+        ]);
+    })->name('password.request');
+
+    Route::get('/reset-password/{token}', function ($token) {
+        return Inertia::render('auth/ResetPassword', [
+            'token' => $token,
+            'email' => request('email'),
+        ]);
+    })->name('password.reset');
+});
+
+// Rutas protegidas (requieren autenticación)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
+
+    // TODO: Añadir más rutas protegidas aquí cuando se implementen las páginas
+    // Route::get('/landings', [LandingController::class, 'index'])->name('landings.index');
+    // Route::get('/invitations', [InvitationController::class, 'index'])->name('invitations.index');
+    // Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+    // Route::get('/themes', [ThemeController::class, 'index'])->name('themes.index');
+});
 
 require __DIR__.'/settings.php';
