@@ -14,6 +14,7 @@ class Theme extends Model
      * Los atributos que se pueden asignar masivamente
      */
     protected $fillable = [
+        'user_id',
         'name',
         'description',
         'primary_color',
@@ -40,5 +41,37 @@ class Theme extends Model
     public function landings(): HasMany
     {
         return $this->hasMany(Landing::class);
+    }
+
+    /**
+     * Relación: Un tema pertenece a un usuario (null para temas del sistema)
+     */
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Scope para temas del sistema
+     */
+    public function scopeSystem($query)
+    {
+        return $query->whereNull('user_id');
+    }
+
+    /**
+     * Scope para temas del usuario
+     */
+    public function scopeForUser($query, int $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Verifica si el tema es del sistema
+     */
+    public function isSystemTheme(): bool
+    {
+        return $this->user_id === null;
     }
 }
