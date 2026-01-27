@@ -31,6 +31,7 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configureResponses();
     }
 
     /**
@@ -87,5 +88,15 @@ class FortifyServiceProvider extends ServiceProvider
 
             return Limit::perMinute(5)->by($throttleKey);
         });
+    }
+
+    /**
+     * Configure authentication responses for Inertia.js
+     */
+    private function configureResponses(): void
+    {
+        // Por defecto, Fortify ya redirige a '/dashboard' después del login
+        // y al 'home' después del registro. No necesitamos configuración adicional
+        // para aplicaciones Inertia.js básicas.
     }
 }
