@@ -142,24 +142,26 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 
 **ThemeController:**
 - **index:** Request usuario → Lista temas disponibles (sistema + usuario)
-- **store:** Datos tema → Tema creado para usuario
+- **store:** Datos tema + archivo imagen opcional → Tema creado para usuario con imagen de fondo subida
 - **show:** ID tema → Detalles tema si accesible
-- **update:** ID + datos → Tema actualizado
-- **destroy:** ID tema → Confirmación eliminación
+- **update:** ID + datos + archivo imagen opcional → Tema actualizado, imagen anterior reemplazada si se envía nueva
+- **destroy:** ID tema → Confirmación eliminación (incluye eliminación de imagen de fondo si existe)
 
 **StoreThemeRequest:**
-- Valida: name requerido, colores formato hex, css_class válido
+- Valida: name requerido, colores formato hex, css_class válido, bg_image_file archivo imagen válido opcional
 - Autoriza: usuario autenticado
 
 **UpdateThemeRequest:**
-- Valida: mismas reglas que store pero opcionales
+- Valida: mismas reglas que store pero opcionales, bg_image_file archivo imagen válido opcional
 - Autoriza: usuario propietario del tema o tema sistema
 
 **ThemeService:**
 - **getAvailableThemes:** Usuario → Temas sistema + temas usuario
-- **createUserTheme:** Usuario + datos → Tema personalizado
-- **updateTheme:** ID + datos + usuario → Tema actualizado
+- **createUserTheme:** Usuario + datos + archivo imagen opcional → Tema personalizado con imagen subida
+- **updateTheme:** ID + datos + usuario + archivo imagen opcional → Tema actualizado, imagen anterior eliminada si se reemplaza
 - **canUserModify:** Usuario + tema → boolean permisos
+- **uploadBackgroundImage:** Archivo imagen + user ID → Media creado con URL pública
+- **deleteOldBackgroundImage:** Media ID → void elimina imagen anterior del storage
 
 **ThemeRepository:**
 - **findSystemThemes:** void → Colección temas sistema
@@ -222,7 +224,7 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 ### 📁 Media
 
 **MediaController:**
-- **index:** Usuario → Media accesible por usuario (via landings/invitations)
+- **index:** Usuario → Media accesible por usuario (via landings/invitations/themes)
 - **store:** Archivo → Media subido y validado
 - **destroy:** ID media → Media eliminado si no está en uso
 
@@ -240,11 +242,13 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - **detachFromLanding:** Landing ID + media ID + user ID → void
 - **attachToInvitation:** Invitation ID + media ID + user ID → void
 - **detachFromInvitation:** Invitation ID + media ID + user ID → void
+- **attachToTheme:** Theme ID + media ID + user ID → void (para imagen de fondo)
+- **detachFromTheme:** Theme ID + media ID + user ID → void
 - **validateUserOwnership:** Media ID + user ID → boolean propietario
 - **validateMediaLimit:** Entity type + entity ID + limit → boolean puede agregar
 
 **MediaRepository:**
-- **findUserAccessible:** User ID → Media del usuario via pivot tables
+- **findUserAccessible:** User ID → Media del usuario via pivot tables y themes
 - **create:** Datos archivo → Media creado
 - **delete:** ID → Media eliminado
 - **findById:** ID → Media o null
@@ -331,11 +335,13 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - `primary_color`: requerido, formato hex (#RRGGBB)
 - `secondary_color`: requerido, formato hex
 - `bg_color`: requerido, formato hex
-- `bg_image_url`: opcional, URL válida, máximo 500 caracteres
+- `bg_image_file`: opcional, archivo de imagen (jpg, jpeg, png, webp), máximo 10MB
+- `bg_image_url`: opcional, URL válida, máximo 500 caracteres (auto-generado si se sube bg_image_file)
 - `css_class`: requerido, máximo 100 caracteres
 
 **UpdateThemeRequest:**
 - Mismas reglas que StoreThemeRequest pero todas opcionales
+- Si se envía `bg_image_file`, reemplaza la imagen anterior y actualiza `bg_image_url`
 
 ### 🏠 Landings
 
@@ -558,6 +564,13 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - Operaciones: attach, detach
 - Límite: máximo 20 media por invitation
 
+**Theme ↔ Media (Background Images):**
+- Relación directa: themes.bg_image_url apunta a media.url
+- Campo adicional en themes: bg_image_media_id (opcional, para referencia)
+- Operaciones: upload, replace, delete
+- Límite: 1 imagen de fondo por tema
+- Nota: Al eliminar tema, se elimina también su media de imagen de fondo
+
 ### 📝 Generación de Slugs
 
 **Algoritmo común para Landing e Invitation:**
@@ -604,14 +617,19 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 **Tests Exitosos (200/201):**
 - `test_user_can_list_available_themes()` - GET `/api/themes`
 - `test_user_can_create_custom_theme()` - POST `/api/themes`
+- `test_user_can_create_theme_with_background_image()` - POST `/api/themes` (con archivo)
 - `test_user_can_view_theme_details()` - GET `/api/themes/{id}`
 - `test_user_can_update_own_theme()` - PUT `/api/themes/{id}`
+- `test_user_can_update_theme_background_image()` - PUT `/api/themes/{id}` (con archivo)
 - `test_user_can_delete_own_theme()` - DELETE `/api/themes/{id}`
 
 **Tests de Error:**
 - `test_theme_creation_requires_authentication()` - 401 Unauthorized
 - `test_theme_creation_validates_required_fields()` - 422 Validation Errors
 - `test_theme_creation_validates_hex_color_format()` - 422 Invalid color format
+- `test_theme_creation_validates_background_image_file()` - 422 Invalid image file
+- `test_theme_background_image_validates_file_size()` - 422 Image too large
+- `test_theme_background_image_validates_file_type()` - 422 Invalid file type
 - `test_user_cannot_update_system_theme()` - 403 Forbidden
 - `test_user_cannot_update_other_user_theme()` - 403 Forbidden
 - `test_theme_not_found_returns_404()` - 404 Not Found
