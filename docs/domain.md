@@ -418,51 +418,23 @@ Los cambios se guardan en Landing, no en Theme
 
 ---
 
-### RN4: Publicación de Landing
+### RN4: Límite de Imágenes
 
-El usuario controla la visibilidad de su landing.
-
-```
-Estados:
-- is_published = false → Solo accesible para propietario (draft)
-- is_published = true → Accesible públicamente vía /p/{slug}
-
-Ruta pública valida: is_published && exists(slug)
-```
-
----
-
-### RN5: Soft Delete
-
-Landings eliminadas se marcan pero no se borran físicamente.
-
-```
-Implementación:
-- Modelo Landing usa SoftDeletes trait
-- Campo deleted_at NULL = activa, filled = eliminada
-- Queries no devuelven landings eliminadas por defecto
-- Solo el propietario puede ver su landing eliminada
-```
-
----
-
-### RN6: Límite de Imágenes
-
-Máximo 50 imágenes por landing.
+Máximo 20 media por landing o invitación.
 
 ```
 Validación en MediaService::uploadImage()
-- Leer límites desde SystemControl (max_images_per_landing, max_file_size_mb, allowed_mime)
-- Contar media activas: Media::where('landing_id', $id)
-                             ->where('is_active', true)
-                             ->count()
-- Si count >= max_images_per_landing, rechazar carga
-- Validar tamaño y MIME contra configuración
+- Máximo 20 media por landing o invitación
+- Contar media via pivot tables:
+  * Landing: LandingMedia::where('landing_id', $id)->count()
+  * Invitation: InvitationMedia::where('invitation_id', $id)->count()
+- Tamaño máximo: 10 MB
+- Formatos: JPG, PNG, WebP, GIF
 ```
 
 ---
 
-### RN7: Invitaciones Personalizadas
+### RN5: Invitaciones Personalizadas
 
 Entidad independiente para crear invitaciones (ej: San Valentín) con mensajes personalizables.
 
@@ -473,17 +445,17 @@ Características:
 - Lista de mensajes de respuesta negativa (JSON array)
   Default: ["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"]
 - Slug único para URL pública (/invitaciones/{slug})
-- Multimedia independiente: GIFs e imágenes (max 10 elementos)
-- Tamaño máximo GIF: 10MB
-- Puede vincularse opcionalmente a una Landing (landing_id nullable)
+- Multimedia via tabla pivot InvitationMedia
+- Máximo 20 media por invitación
+- Tamaño máximo: 10MB (incluyendo GIFs)
 - is_published controla visibilidad pública
 - Soft delete habilitado
 
 Validación en InvitationService::createInvitation():
 - Slug único generado automáticamente
-- Máximo 10 elementos multimedia por invitación
-- GIFs solo permitidos si `gif_enabled` en SystemControl es true
-- Validar tamaño y MIME contra configuración
+- Máximo 20 elementos multimedia por invitación
+- Formatos: JPG, PNG, WebP, GIF
+- Validar tamaño máximo 10MB
 ```
 
 ---
@@ -496,7 +468,7 @@ La arquitectura separa acceso a datos de lógica de negocio:
 // LandingRepositoryInterface
 interface LandingRepositoryInterface {
     public function findBySlug(string $slug): ?Landing;
-    public function findByUser(User $user): ?Landing;
+    public function findByUser(User $user): Collection;
     public function create(array $data): Landing;
     public function update(int $id, array $data): Landing;
     public function delete(int $id): void;
@@ -507,9 +479,7 @@ class EloquentLandingRepository implements LandingRepositoryInterface {
     public function __construct(private Landing $model) {}
     
     public function findBySlug(string $slug): ?Landing {
-        return $this->model->where('slug', $slug)
-            ->where('is_published', true)
-            ->first();
+        return $this->model->where('slug', $slug)->first();
     }
     // ... otros métodos
 }
@@ -525,7 +495,7 @@ class LandingService {
         // Generar slug
         $slug = $this->slugService->generate($data['couple_names']);
         
-        // Crear via repositorio
+        // Crear via repositorio (auto-published)
         return $this->repo->create([
             'user_id' => $user->id,
             'theme_id' => $data['theme_id'],
