@@ -2,7 +2,7 @@
 export { authService, AuthService } from './auth/AuthService';
 export { landingService, LandingService } from './landing/LandingService';
 export { invitationService, InvitationService } from './invitation/InvitationService';
-export { mediaService, MediaService } from './media/MediaService';
+export { mediaService } from './media/MediaService';
 export { themeService, ThemeService } from './theme/ThemeService';
 
 // Exportar el cliente API
@@ -32,12 +32,6 @@ export type {
     CreateInvitationData,
     UpdateInvitationData
 } from './invitation/InvitationService';
-
-export type {
-    // Media types
-    Media,
-    MediaUploadResponse
-} from './media/MediaService';
 
 export type {
     // Theme types

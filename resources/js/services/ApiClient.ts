@@ -15,6 +15,19 @@ class ApiClient {
             withCredentials: true, // Importante: para que Laravel mantenga las cookies de sesión
         });
 
+        // Request interceptor para agregar CSRF token
+        this.client.interceptors.request.use(
+            (config) => {
+                // Obtener CSRF token desde meta tag o cookie
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (token) {
+                    config.headers['X-CSRF-TOKEN'] = token;
+                }
+                return config;
+            },
+            (error) => Promise.reject(error)
+        );
+
         // Response interceptor para manejar errores globales
         this.client.interceptors.response.use(
             (response) => response,

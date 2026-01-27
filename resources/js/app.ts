@@ -4,8 +4,14 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import '../css/app.css';
 import { initializeTheme } from './composables/useAppearance';
+import { apiClient } from './services/ApiClient';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+// Inicializar CSRF token para autenticación con sesiones
+apiClient.setupCsrf().catch(() => {
+    // Silenciosamente ignorar errores de CSRF en páginas públicas
+});
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
