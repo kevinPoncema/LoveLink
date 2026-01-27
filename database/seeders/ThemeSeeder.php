@@ -12,7 +12,6 @@ class ThemeSeeder extends Seeder
      */
     public function run(): void
     {
-        // Crear temas del sistema (user_id = null)
         Theme::create([
             'name' => 'Elegante Clásico',
             'description' => 'Tema elegante con tonos dorados y blancos clásicos',

@@ -70,9 +70,7 @@ class ThemeService
             throw new \Exception('Unauthorized to modify this theme', 403);
         }
 
-        // Si hay nueva imagen de fondo, subir y reemplazar
         if ($backgroundImage) {
-            // Eliminar imagen anterior si existe
             if ($theme->bg_image_media_id) {
                 $this->deleteOldBackgroundImage($theme->bg_image_media_id);
             }
@@ -83,7 +81,6 @@ class ThemeService
             $data['bg_image_url'] = $media->url;
         }
 
-        // Remove user_id from update data to prevent modification
         unset($data['user_id']);
 
         return $this->themeRepository->update($themeId, $data);
@@ -114,7 +111,6 @@ class ThemeService
             throw new \Exception('Cannot delete system themes', 403);
         }
 
-        // Eliminar imagen de fondo si existe
         if ($theme->bg_image_media_id) {
             $this->deleteOldBackgroundImage($theme->bg_image_media_id);
         }

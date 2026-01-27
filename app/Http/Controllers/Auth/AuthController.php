@@ -55,7 +55,6 @@ class AuthController extends Controller
 
         $user = $this->authService->createUser($userData);
 
-        // Generate token for the new user
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

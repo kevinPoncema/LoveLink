@@ -74,7 +74,6 @@ class LandingController extends Controller
     public function show(Request $request, string $identifier): JsonResponse
     {
         try {
-            // Determinar si es ID o slug
             if (is_numeric($identifier)) {
                 $landing = $this->landingService->getLandingByIdPublic((int) $identifier);
             } else {

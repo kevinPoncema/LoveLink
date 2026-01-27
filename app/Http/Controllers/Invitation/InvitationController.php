@@ -75,9 +75,7 @@ class InvitationController extends Controller
     public function show(Request $request, $identifier): JsonResponse
     {
         try {
-            // Determinar si es ID o slug
             if (is_numeric($identifier)) {
-                // Es un ID - requiere autenticación y permisos
                 if (! $request->user()) {
                     return response()->json([
                         'success' => false,
@@ -90,7 +88,6 @@ class InvitationController extends Controller
                     $request->user()
                 );
             } else {
-                // Es un slug - acceso público
                 $invitation = $this->invitationService->findPublicInvitationBySlug($identifier);
             }
 

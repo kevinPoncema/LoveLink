@@ -23,14 +23,12 @@ class MediaService
         
         $path = $this->generateFilePath($file);
         
-        // Subir archivo usando el disco public
         $storedPath = Storage::disk('public')->putFileAs(
             "media/users/{$userId}", 
             $file, 
             $path
         );
         
-        // Generar URL pública
         $url = Storage::disk('public')->url($storedPath);
         
         return $this->mediaRepository->create([
@@ -54,17 +52,14 @@ class MediaService
             return false;
         }
         
-        // Verificar si está en uso
         if ($this->isMediaInUse($mediaId)) {
             return false;
         }
         
-        // Eliminar archivo del storage
         if (Storage::disk('public')->exists($media->path)) {
             Storage::disk('public')->delete($media->path);
         }
         
-        // Eliminar registro de base de datos
         return $this->mediaRepository->delete($mediaId);
     }
 
@@ -80,12 +75,10 @@ class MediaService
             return false;
         }
         
-        // Eliminar archivo del storage
         if (Storage::disk('public')->exists($media->path)) {
             Storage::disk('public')->delete($media->path);
         }
         
-        // Eliminar registro de base de datos
         return $this->mediaRepository->delete($mediaId);
     }
 
@@ -143,14 +136,12 @@ class MediaService
         
         $path = $this->generateFilePath($file);
         
-        // Subir archivo en directorio específico de themes
         $storedPath = Storage::disk('public')->putFileAs(
             "media/themes/{$userId}", 
             $file, 
             $path
         );
         
-        // Generar URL pública
         $url = Storage::disk('public')->url($storedPath);
         
         return $this->mediaRepository->create([
@@ -179,9 +170,6 @@ class MediaService
         if (!$this->validateUserOwnership($mediaId, $userId)) {
             throw new \InvalidArgumentException('No tienes permisos sobre este media');
         }
-
-        // La vinculación se hace actualizando el campo bg_image_media_id en el tema
-        // Esto se maneja en el ThemeService
     }
 
     /**

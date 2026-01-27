@@ -6,15 +6,10 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class AttachInvitationMediaRequest extends FormRequest
 {
-    /**
-     * Determina si el usuario está autorizado a hacer esta solicitud
-     */
+   
     public function authorize(): bool
     {
-        // Obtener la invitation desde la ruta
         $invitation = $this->route('invitation');
-
-        // Asegurarse de que sea una instancia del modelo Invitation
         if (is_string($invitation)) {
             $invitation = \App\Models\Invitation::find($invitation);
         }
@@ -35,7 +30,6 @@ class AttachInvitationMediaRequest extends FormRequest
                 'integer',
                 'exists:media,id',
                 function ($attribute, $value, $fail) {
-                    // Verificar que el media pertenezca al usuario autenticado
                     $media = \App\Models\Media::find($value);
                     if (! $media || $media->user_id !== auth()->id()) {
                         $fail('El archivo multimedia seleccionado no te pertenece.');

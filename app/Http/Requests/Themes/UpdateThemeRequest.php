@@ -11,7 +11,7 @@ class UpdateThemeRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check(); // Usuario autenticado
+        return auth()->check();
     }
 
     /**

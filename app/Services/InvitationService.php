@@ -32,19 +32,16 @@ class InvitationService
      */
     public function createInvitation(User $user, array $data): Invitation
     {
-        // Generar slug si no se proporciona
         if (! isset($data['slug']) || empty($data['slug'])) {
             $data['slug'] = $this->generateUniqueSlug($data['title'], $user->id);
         } else {
-            // Validar que el slug sea único para el usuario
             if (! $this->validateSlugUniqueness($data['slug'], $user->id)) {
                 throw new \InvalidArgumentException('El slug ya existe para este usuario');
             }
         }
 
         $data['user_id'] = $user->id;
-
-        // Establecer valores por defecto si no están definidos
+        // Establecer valores predeterminados
         if (! isset($data['yes_message'])) {
             $data['yes_message'] = 'Sí';
         }

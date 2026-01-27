@@ -58,7 +58,6 @@ class LandingService
             throw new \Exception('No tienes permisos para actualizar esta landing', 403);
         }
 
-        // Si se actualiza el slug, verificar unicidad
         if (isset($data['slug']) && $data['slug'] !== $landing->slug) {
             if (! $this->validateSlugUniqueness($data['slug'], $user->id, $id)) {
                 throw new \InvalidArgumentException('El slug ya existe para este usuario');
@@ -188,7 +187,7 @@ class LandingService
     {
         $currentCount = $this->landingRepository->countMediaForLanding($landingId);
 
-        return $currentCount < 20; // Límite según especificación
+        return $currentCount < 20;
     }
 
     /**
@@ -196,17 +195,14 @@ class LandingService
      */
     public function attachMediaToLanding(int $landingId, int $mediaId, int $userId, ?int $sortOrder = null): void
     {
-        // Validar permisos del usuario sobre la landing
         if (! $this->canUserModifyLanding($landingId, $userId)) {
             throw new \Exception('No tienes permisos sobre esta landing', 403);
         }
 
-        // Validar límite de media
         if (! $this->validateMediaLimit($landingId)) {
             throw new \InvalidArgumentException('Se ha alcanzado el límite máximo de media (20) para esta landing');
         }
 
-        // Si no se proporciona orden, obtener el siguiente disponible
         if (is_null($sortOrder)) {
             $sortOrder = $this->getNextMediaSortOrder($landingId);
         }
@@ -219,7 +215,6 @@ class LandingService
      */
     public function detachMediaFromLanding(int $landingId, int $mediaId, int $userId): void
     {
-        // Validar permisos del usuario sobre la landing
         if (! $this->canUserModifyLanding($landingId, $userId)) {
             throw new \UnauthorizedHttpException('', 'No tienes permisos sobre esta landing');
         }
@@ -232,12 +227,10 @@ class LandingService
      */
     public function reorderLandingMedia(int $landingId, array $mediaOrder, int $userId): void
     {
-        // Validar permisos del usuario sobre la landing
         if (! $this->canUserModifyLanding($landingId, $userId)) {
             throw new \Exception('No tienes permisos sobre esta landing', 403);
         }
 
-        // Validar que todos los media pertenezcan a la landing
         $landing = $this->landingRepository->findById($landingId);
         $landingMediaIds = $landing->media->pluck('id')->toArray();
 

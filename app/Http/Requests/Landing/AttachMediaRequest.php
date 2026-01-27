@@ -16,11 +16,9 @@ class AttachMediaRequest extends FormRequest
             return false;
         }
 
-        // Verificar que el media pertenezca al usuario autenticado solo si existe
         $mediaId = $this->input('media_id');
         if ($mediaId) {
             $media = Media::find($mediaId);
-            // Si el media no existe, permitir que la validación en rules() lo maneje
             if ($media && $media->user_id !== auth()->id()) {
                 return false;
             }

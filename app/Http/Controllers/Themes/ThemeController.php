@@ -35,11 +35,7 @@ class ThemeController extends Controller
     {
         try {
             $data = $request->validated();
-
-            // Extraer archivo de imagen si existe
             $backgroundImage = $request->hasFile('bg_image_file') ? $request->file('bg_image_file') : null;
-
-            // Remover el archivo de los datos ya que se maneja por separado
             unset($data['bg_image_file']);
 
             $theme = $this->themeService->createUserTheme($request->user(), $data, $backgroundImage);
@@ -88,10 +84,8 @@ class ThemeController extends Controller
         try {
             $data = $request->validated();
 
-            // Extraer archivo de imagen si existe
             $backgroundImage = $request->hasFile('bg_image_file') ? $request->file('bg_image_file') : null;
 
-            // Remover el archivo de los datos ya que se maneja por separado
             unset($data['bg_image_file']);
 
             $theme = $this->themeService->updateTheme($id, $data, $request->user(), $backgroundImage);
