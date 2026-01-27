@@ -23,6 +23,9 @@ class ApiClient {
                 if (token) {
                     config.headers['X-CSRF-TOKEN'] = token;
                 }
+
+                console.log('[DEBUG] Petición API:', config.method?.toUpperCase(), config.url);
+
                 return config;
             },
             (error) => Promise.reject(error)
@@ -30,8 +33,13 @@ class ApiClient {
 
         // Response interceptor para manejar errores globales
         this.client.interceptors.response.use(
-            (response) => response,
+            (response) => {
+                console.log('[DEBUG] Respuesta API:', response.status, response.config?.method?.toUpperCase(), response.config?.url);
+                return response;
+            },
             (error) => {
+                console.error('[DEBUG] Error API:', error.response?.status, error.response?.config?.method?.toUpperCase(), error.response?.config?.url, error.message);
+                
                 if (error.response?.status === 401) {
                     // Redirigir al login si no está ya ahí
                     if (!window.location.pathname.includes('/login')) {

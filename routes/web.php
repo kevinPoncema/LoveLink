@@ -56,14 +56,45 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Themes');
     })->name('themes.index');
 
+    // Versión simple de themes para testing
+    Route::get('/themes-simple', function () {
+        return Inertia::render('Dashboard', [
+            'test_message' => 'Esta es una versión simple de themes. Si ves esto, la autenticación funciona.'
+        ]);
+    })->name('themes.simple');
+
     // Gestión de Media
     Route::get('/media', function () {
         return Inertia::render('Media');
     })->name('media.index');
 
+    // Ruta de test para debugging
+    Route::get('/test-auth', function () {
+        return Inertia::render('AuthTest', [
+            'test_data' => [
+                'user' => auth()->user(),
+                'is_authenticated' => auth()->check(),
+                'email_verified' => auth()->user()?->email_verified_at,
+                'guard' => auth()->getDefaultDriver(),
+            ]
+        ]);
+    })->name('test.auth');
+
     // TODO: Añadir más rutas protegidas aquí cuando se implementen las páginas
     // Route::get('/landings', [LandingController::class, 'index'])->name('landings.index');
     // Route::get('/invitations', [InvitationController::class, 'index'])->name('invitations.index');
 });
+
+// Ruta de test para debugging (sin autenticación requerida)
+Route::get('/test-auth-public', function () {
+    return Inertia::render('AuthTest', [
+        'test_data' => [
+            'user' => auth()->user(),
+            'is_authenticated' => auth()->check(),
+            'email_verified' => auth()->user()?->email_verified_at,
+            'guard' => auth()->getDefaultDriver(),
+        ]
+    ]);
+})->name('test.auth.public');
 
 require __DIR__.'/settings.php';

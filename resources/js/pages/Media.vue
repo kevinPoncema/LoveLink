@@ -162,8 +162,8 @@ const handleUpload = () => {
 };
 
 // Lifecycle
-onMounted(() => {
-    loadMedia();
+onMounted(async () => {
+    await loadMedia();
 });
 </script>
 

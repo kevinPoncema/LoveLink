@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Api\TokenController;
 use App\Http\Controllers\Invitation\InvitationController;
 use App\Http\Controllers\Invitation\InvitationMediaController;
 use App\Http\Controllers\Landing\LandingController;
@@ -28,6 +29,11 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
+// Token creation route (requires web auth)
+Route::middleware(['auth:web'])->group(function () {
+    Route::post('/tokens/create', [TokenController::class, 'create']);
+});
+
 // Protected authentication routes
 Route::group(['prefix' => 'auth', 'middleware' => 'auth:sanctum'], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -47,7 +53,7 @@ Route::get('/landings/{identifier}', [LandingController::class, 'show']);
 Route::get('/invitations/{identifier}', [InvitationController::class, 'show']);
 
 // Protected routes
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum,web'])->group(function () {
     // Themes routes
     Route::apiResource('themes', ThemeController::class);
 
