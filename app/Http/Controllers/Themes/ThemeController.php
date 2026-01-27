@@ -17,9 +17,6 @@ class ThemeController extends Controller
 
     /**
      * Lista temas disponibles para el usuario (sistema + propios)
-     * 
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
@@ -33,18 +30,15 @@ class ThemeController extends Controller
 
     /**
      * Crea un nuevo tema personalizado para el usuario
-     * 
-     * @param StoreThemeRequest $request
-     * @return JsonResponse
      */
     public function store(StoreThemeRequest $request): JsonResponse
     {
         try {
             $data = $request->validated();
-            
+
             // Extraer archivo de imagen si existe
             $backgroundImage = $request->hasFile('bg_image_file') ? $request->file('bg_image_file') : null;
-            
+
             // Remover el archivo de los datos ya que se maneja por separado
             unset($data['bg_image_file']);
 
@@ -53,33 +47,29 @@ class ThemeController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Tema creado exitosamente.',
-                'data' => $theme->load('backgroundImage'),
+                'theme' => $theme->load('backgroundImage'),
             ], 201);
         } catch (\InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al crear el tema: ' . $e->getMessage()
+                'message' => 'Error al crear el tema: '.$e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Muestra detalles de un tema específico si es accesible
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return JsonResponse
      */
     public function show(Request $request, int $id): JsonResponse
     {
         $theme = $this->themeService->findAccessibleTheme($id, $request->user());
 
-        if (!$theme) {
+        if (! $theme) {
             return response()->json([
                 'message' => 'Tema no encontrado o no accesible.',
             ], 404);
@@ -92,19 +82,15 @@ class ThemeController extends Controller
 
     /**
      * Actualiza un tema del usuario
-     * 
-     * @param UpdateThemeRequest $request
-     * @param int $id
-     * @return JsonResponse
      */
     public function update(UpdateThemeRequest $request, int $id): JsonResponse
     {
         try {
             $data = $request->validated();
-            
+
             // Extraer archivo de imagen si existe
             $backgroundImage = $request->hasFile('bg_image_file') ? $request->file('bg_image_file') : null;
-            
+
             // Remover el archivo de los datos ya que se maneja por separado
             unset($data['bg_image_file']);
 
@@ -113,17 +99,17 @@ class ThemeController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Tema actualizado exitosamente.',
-                'data' => $theme->load('backgroundImage'),
+                'theme' => $theme->load('backgroundImage'),
             ], 200);
 
         } catch (\InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 422);
         } catch (\Exception $e) {
             $statusCode = $e->getCode() ?: 500;
-            
+
             if ($statusCode === 404) {
                 return response()->json([
                     'success' => false,
@@ -140,17 +126,13 @@ class ThemeController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error al actualizar el tema: ' . $e->getMessage()
+                'message' => 'Error al actualizar el tema: '.$e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Elimina un tema del usuario
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return JsonResponse
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
@@ -171,7 +153,7 @@ class ThemeController extends Controller
 
         } catch (\Exception $e) {
             $statusCode = $e->getCode() ?: 500;
-            
+
             if ($statusCode === 404) {
                 return response()->json([
                     'message' => 'Tema no encontrado.',

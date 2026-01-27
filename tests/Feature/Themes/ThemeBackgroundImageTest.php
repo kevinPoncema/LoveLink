@@ -36,13 +36,13 @@ class ThemeBackgroundImageTest extends TestCase
             'secondary_color' => '#00FF00',
             'bg_color' => '#0000FF',
             'css_class' => 'theme-custom-bg',
-            'bg_image_file' => $file
+            'bg_image_file' => $file,
         ]);
 
         $response->assertStatus(201)
             ->assertJsonStructure([
                 'success',
-                'data' => [
+                'theme' => [
                     'id',
                     'name',
                     'description',
@@ -53,19 +53,19 @@ class ThemeBackgroundImageTest extends TestCase
                     'bg_image_media_id',
                     'css_class',
                     'user_id',
-                    'background_image'
+                    'background_image',
                 ],
-                'message'
+                'message',
             ])
             ->assertJsonPath('success', true)
-            ->assertJsonPath('data.name', 'Tema con Fondo')
-            ->assertJsonPath('data.user_id', $user->id);
+            ->assertJsonPath('theme.name', 'Tema con Fondo')
+            ->assertJsonPath('theme.user_id', $user->id);
 
         // Verificar que se creó el media
         $this->assertDatabaseHas('media', [
             'user_id' => $user->id,
             'filename' => 'background.jpg',
-            'mime_type' => 'image/jpeg'
+            'mime_type' => 'image/jpeg',
         ]);
 
         // Verificar que el tema tiene referencia al media
@@ -85,18 +85,18 @@ class ThemeBackgroundImageTest extends TestCase
 
         $response = $this->putJson("/api/themes/{$theme->id}", [
             'name' => 'Tema Actualizado',
-            'bg_image_file' => $file
+            'bg_image_file' => $file,
         ]);
 
         $response->assertStatus(200)
             ->assertJsonPath('success', true)
-            ->assertJsonPath('data.name', 'Tema Actualizado');
+            ->assertJsonPath('theme.name', 'Tema Actualizado');
 
         // Verificar que se creó el nuevo media
         $this->assertDatabaseHas('media', [
             'user_id' => $user->id,
             'filename' => 'new-background.png',
-            'mime_type' => 'image/png'
+            'mime_type' => 'image/png',
         ]);
 
         // Verificar que el tema se actualizó
@@ -120,7 +120,7 @@ class ThemeBackgroundImageTest extends TestCase
             'secondary_color' => '#00FF00',
             'bg_color' => '#0000FF',
             'css_class' => 'theme-invalid',
-            'bg_image_file' => $file
+            'bg_image_file' => $file,
         ]);
 
         $response->assertStatus(422)
@@ -142,7 +142,7 @@ class ThemeBackgroundImageTest extends TestCase
             'secondary_color' => '#00FF00',
             'bg_color' => '#0000FF',
             'css_class' => 'theme-large',
-            'bg_image_file' => $file
+            'bg_image_file' => $file,
         ]);
 
         $response->assertStatus(422)
@@ -156,7 +156,7 @@ class ThemeBackgroundImageTest extends TestCase
         $media = Media::factory()->forUser($user)->create();
         $theme = Theme::factory()->forUser($user)->create([
             'bg_image_media_id' => $media->id,
-            'bg_image_url' => $media->url
+            'bg_image_url' => $media->url,
         ]);
 
         Sanctum::actingAs($user);
@@ -180,7 +180,7 @@ class ThemeBackgroundImageTest extends TestCase
         $oldMedia = Media::factory()->forUser($user)->create();
         $theme = Theme::factory()->forUser($user)->create([
             'bg_image_media_id' => $oldMedia->id,
-            'bg_image_url' => $oldMedia->url
+            'bg_image_url' => $oldMedia->url,
         ]);
 
         Sanctum::actingAs($user);
@@ -188,7 +188,7 @@ class ThemeBackgroundImageTest extends TestCase
         $newFile = UploadedFile::fake()->image('new-background.jpg', 1920, 1080);
 
         $response = $this->putJson("/api/themes/{$theme->id}", [
-            'bg_image_file' => $newFile
+            'bg_image_file' => $newFile,
         ]);
 
         $response->assertStatus(200)
@@ -200,7 +200,7 @@ class ThemeBackgroundImageTest extends TestCase
         // Verificar que se creó nuevo media
         $this->assertDatabaseHas('media', [
             'user_id' => $user->id,
-            'filename' => 'new-background.jpg'
+            'filename' => 'new-background.jpg',
         ]);
 
         // Verificar que el tema se actualizó con el nuevo media
@@ -215,7 +215,7 @@ class ThemeBackgroundImageTest extends TestCase
         $media = Media::factory()->forUser($user)->create();
         $theme = Theme::factory()->forUser($user)->create([
             'bg_image_media_id' => $media->id,
-            'bg_image_url' => $media->url
+            'bg_image_url' => $media->url,
         ]);
 
         Sanctum::actingAs($user);
