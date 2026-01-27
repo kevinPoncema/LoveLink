@@ -189,7 +189,55 @@ class MediaService
      */
     public function validateMediaLimit(string $entityType, int $entityId, int $limit): bool
     {
-        // Implementar según necesidad específica de cada entidad
-        return true;
+        $currentCount = $this->mediaRepository->countMediaByEntity($entityType, $entityId);
+        return $currentCount < $limit;
+    }
+
+    /**
+     * Vincula media a una landing (método específico para Landing)
+     */
+    public function attachToLanding(int $landingId, int $mediaId, int $userId, int $sortOrder): void
+    {
+        if (!$this->validateUserOwnership($mediaId, $userId)) {
+            throw new \InvalidArgumentException('No tienes permisos sobre este media');
+        }
+
+        $this->mediaRepository->attachToLanding($landingId, $mediaId, $sortOrder);
+    }
+
+    /**
+     * Desvincula media de una landing
+     */
+    public function detachFromLanding(int $landingId, int $mediaId, int $userId): void
+    {
+        if (!$this->validateUserOwnership($mediaId, $userId)) {
+            throw new \InvalidArgumentException('No tienes permisos sobre este media');
+        }
+
+        $this->mediaRepository->detachFromLanding($landingId, $mediaId);
+    }
+
+    /**
+     * Vincula media a una invitation
+     */
+    public function attachToInvitation(int $invitationId, int $mediaId, int $userId): void
+    {
+        if (!$this->validateUserOwnership($mediaId, $userId)) {
+            throw new \InvalidArgumentException('No tienes permisos sobre este media');
+        }
+
+        $this->mediaRepository->attachToInvitation($invitationId, $mediaId);
+    }
+
+    /**
+     * Desvincula media de una invitation
+     */
+    public function detachFromInvitation(int $invitationId, int $mediaId, int $userId): void
+    {
+        if (!$this->validateUserOwnership($mediaId, $userId)) {
+            throw new \InvalidArgumentException('No tienes permisos sobre este media');
+        }
+
+        $this->mediaRepository->detachFromInvitation($invitationId, $mediaId);
     }
 }

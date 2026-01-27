@@ -107,4 +107,93 @@ class MediaRepository
             ->where('mime_type', 'like', 'image/%')
             ->get();
     }
+
+    /**
+     * Vincula media a una landing con orden
+     */
+    public function attachToLanding(int $landingId, int $mediaId, int $sortOrder): void
+    {
+        $media = Media::findOrFail($mediaId);
+        
+        // Si ya existe, actualizar orden, si no, crear nueva vinculación
+        if ($media->landings()->where('landing_id', $landingId)->exists()) {
+            $media->landings()->updateExistingPivot($landingId, ['sort_order' => $sortOrder]);
+        } else {
+            $media->landings()->attach($landingId, ['sort_order' => $sortOrder]);
+        }
+    }
+
+    /**
+     * Desvincula media de una landing
+     */
+    public function detachFromLanding(int $landingId, int $mediaId): void
+    {
+        $media = Media::findOrFail($mediaId);
+        $media->landings()->detach($landingId);
+    }
+
+    /**
+     * Vincula media a una invitation
+     */
+    public function attachToInvitation(int $invitationId, int $mediaId): void
+    {
+        $media = Media::findOrFail($mediaId);
+        
+        if (!$media->invitations()->where('invitation_id', $invitationId)->exists()) {
+            $media->invitations()->attach($invitationId);
+        }
+    }
+
+    /**
+     * Desvincula media de una invitation
+     */
+    public function detachFromInvitation(int $invitationId, int $mediaId): void
+    {
+        $media = Media::findOrFail($mediaId);
+        $media->invitations()->detach($invitationId);
+    }
+
+    /**
+     * Actualiza el orden de media en una landing
+     */
+    public function updateLandingMediaOrder(int $landingId, array $orders): void
+    {
+        foreach ($orders as $item) {
+            if (isset($item['media_id']) && isset($item['sort_order'])) {
+                $media = Media::findOrFail($item['media_id']);
+                $media->landings()->updateExistingPivot(
+                    $landingId, 
+                    ['sort_order' => $item['sort_order']]
+                );
+            }
+        }
+    }
+
+    /**
+     * Cuenta media vinculado a una entidad específica
+     */
+    public function countMediaByEntity(string $entityType, int $entityId): int
+    {
+        switch ($entityType) {
+            case 'landing':
+                $media = Media::query();
+                return $media->whereHas('landings', function($query) use ($entityId) {
+                    $query->where('landing_id', $entityId);
+                })->count();
+                
+            case 'invitation':
+                $media = Media::query();
+                return $media->whereHas('invitations', function($query) use ($entityId) {
+                    $query->where('invitation_id', $entityId);
+                })->count();
+                
+            case 'theme':
+                return Media::whereHas('themes', function($query) use ($entityId) {
+                    $query->where('theme_id', $entityId);
+                })->count();
+                
+            default:
+                return 0;
+        }
+    }
 }
