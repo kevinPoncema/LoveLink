@@ -166,11 +166,7 @@ class ThemeService
      */
     public function deleteOldBackgroundImage(int $mediaId): void
     {
-        // Obtener el media para conocer el user_id
-        $media = \App\Models\Media::find($mediaId);
-        if ($media) {
-            $this->mediaService->deleteMedia($mediaId, $media->user_id);
-        }
+        $this->mediaService->forceDeleteMedia($mediaId);
     }
 
     /**

@@ -39,14 +39,33 @@ class ThemeController extends Controller
      */
     public function store(StoreThemeRequest $request): JsonResponse
     {
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
+            
+            // Extraer archivo de imagen si existe
+            $backgroundImage = $request->hasFile('bg_image_file') ? $request->file('bg_image_file') : null;
+            
+            // Remover el archivo de los datos ya que se maneja por separado
+            unset($data['bg_image_file']);
 
-        $theme = $this->themeService->createUserTheme($request->user(), $data);
+            $theme = $this->themeService->createUserTheme($request->user(), $data, $backgroundImage);
 
-        return response()->json([
-            'message' => 'Tema creado exitosamente.',
-            'theme' => $theme,
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Tema creado exitosamente.',
+                'data' => $theme->load('backgroundImage'),
+            ], 201);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear el tema: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -82,30 +101,46 @@ class ThemeController extends Controller
     {
         try {
             $data = $request->validated();
-            $theme = $this->themeService->updateTheme($id, $data, $request->user());
+            
+            // Extraer archivo de imagen si existe
+            $backgroundImage = $request->hasFile('bg_image_file') ? $request->file('bg_image_file') : null;
+            
+            // Remover el archivo de los datos ya que se maneja por separado
+            unset($data['bg_image_file']);
+
+            $theme = $this->themeService->updateTheme($id, $data, $request->user(), $backgroundImage);
 
             return response()->json([
+                'success' => true,
                 'message' => 'Tema actualizado exitosamente.',
-                'theme' => $theme,
+                'data' => $theme->load('backgroundImage'),
             ], 200);
 
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
         } catch (\Exception $e) {
             $statusCode = $e->getCode() ?: 500;
             
             if ($statusCode === 404) {
                 return response()->json([
+                    'success' => false,
                     'message' => 'Tema no encontrado.',
                 ], 404);
             }
 
             if ($statusCode === 403) {
                 return response()->json([
+                    'success' => false,
                     'message' => 'No tienes permisos para modificar este tema.',
                 ], 403);
             }
 
             return response()->json([
-                'message' => 'Error interno del servidor.',
+                'success' => false,
+                'message' => 'Error al actualizar el tema: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -124,11 +159,13 @@ class ThemeController extends Controller
 
             if ($success) {
                 return response()->json([
+                    'success' => true,
                     'message' => 'Tema eliminado exitosamente.',
                 ], 200);
             }
 
             return response()->json([
+                'success' => false,
                 'message' => 'Error al eliminar el tema.',
             ], 500);
 

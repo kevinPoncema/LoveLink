@@ -69,6 +69,27 @@ class MediaService
     }
 
     /**
+     * Elimina media forzosamente (por el sistema)
+     * Utilizado cuando se actualiza o elimina un tema que usa el media
+     */
+    public function forceDeleteMedia(int $mediaId): bool
+    {
+        $media = $this->mediaRepository->findById($mediaId);
+        
+        if (!$media) {
+            return false;
+        }
+        
+        // Eliminar archivo del storage
+        if (Storage::disk('public')->exists($media->path)) {
+            Storage::disk('public')->delete($media->path);
+        }
+        
+        // Eliminar registro de base de datos
+        return $this->mediaRepository->delete($mediaId);
+    }
+
+    /**
      * Valida un archivo
      */
     public function validateFile(UploadedFile $file): bool
