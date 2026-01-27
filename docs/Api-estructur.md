@@ -295,7 +295,6 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - **findBySlug:** Slug → Invitation publicado o null
 - **create:** Datos + user_id → Invitation creado
 - **update:** ID + datos → Invitation actualizado
-- **softDelete:** ID → Invitation marcado como eliminado
 - **attachMedia:** Invitation ID + media ID → void
 
 ### 🌐 Public Routes
@@ -308,7 +307,6 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 
 **Características especiales:**
 - Sin autenticación requerida
-- Solo entidades con is_published = true
 - Datos optimizados para visitantes
 - Eager loading de relaciones necesarias
 
@@ -446,7 +444,6 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 | `create` | array datos | Invitation | Crea nueva invitation |
 | `update` | int id, array datos | Invitation | Actualiza invitation |
 | `findById` | int id | Invitation o null | Busca invitation por ID |
-| `softDelete` | int id | bool | Soft delete invitation |
 | `attachMedia` | int invitationId, int mediaId | void | Vincula media |
 | `detachMedia` | int invitationId, int mediaId | void | Desvincula media |
 
@@ -717,15 +714,6 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - `test_cannot_attach_media_beyond_limit()` - 422 Media limit exceeded (20)
 - `test_cannot_attach_other_user_media()` - 403 Forbidden
 
-### 🌐 PublicControllerTest
-
-**Tests Exitosos (200):**
-- `test_public_can_view_landing_by_slug()` - GET `/api/public/landing/{slug}`
-- `test_public_can_view_invitation_by_slug()` - GET `/api/public/invitation/{slug}`
-
-**Tests de Error:**
-- `test_public_landing_not_found_returns_404()` - 404 Not Found
-- `test_public_invitation_not_found_returns_404()` - 404 Not Found
 
 ### 📂 Organización de Tests
 
