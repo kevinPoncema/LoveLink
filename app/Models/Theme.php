@@ -21,6 +21,7 @@ class Theme extends Model
         'secondary_color',
         'bg_color',
         'bg_image_url',
+        'bg_image_media_id',
         'css_class',
     ];
 
@@ -49,6 +50,14 @@ class Theme extends Model
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relación: Un tema puede tener una imagen de fondo
+     */
+    public function backgroundImage(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'bg_image_media_id');
     }
 
     /**
