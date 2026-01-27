@@ -19,7 +19,9 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
+Route::get('/ping', function () {
+    return response()->json(['status' => 'OK','timestamp' => now(),"message" => "pong"], 200);
+});
 // Public authentication routes
 Route::group(['prefix' => 'auth'], function () {
     Route::post('/login', [AuthController::class, 'login']);
