@@ -19,14 +19,10 @@ return new class extends Migration
             $table->string('couple_names', 200);
             $table->date('anniversary_date');
             $table->longText('bio_text')->nullable();
-            $table->boolean('is_published')->default(true);
             $table->timestamps();
-            $table->softDeletes(); // Para soft delete
 
             $table->index('slug');
             $table->index('user_id');
-            $table->index('is_published');
-            $table->index('deleted_at');
         });
     }
 

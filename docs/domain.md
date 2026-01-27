@@ -44,7 +44,6 @@ Representa un usuario registrado en el sistema.
 | `name` | VARCHAR(255) | Nullable |
 | `created_at` | TIMESTAMP | Automático |
 | `updated_at` | TIMESTAMP | Automático |
-| `deleted_at` | TIMESTAMP | Soft delete (nullable) |
 
 **Restricciones:**
 - Email único a nivel de BD
@@ -65,10 +64,8 @@ Página conmemorativa asociada a un usuario.
 | `couple_names` | VARCHAR(200) | NOT NULL |
 | `anniversary_date` | DATE | NOT NULL |
 | `bio_text` | LONGTEXT | Nullable |
-| `is_published` | BOOLEAN | DEFAULT TRUE |
 | `created_at` | TIMESTAMP | Automático |
 | `updated_at` | TIMESTAMP | Automático |
-| `deleted_at` | TIMESTAMP | Soft delete |
 
 **Restricciones:**
 - Slug: 3-50 caracteres, alfanuméricos + guiones, único
@@ -85,14 +82,12 @@ Catálogo de temas visuales personalizables.
 |-------|------|------------|
 | `id` | INT | PK, AUTO_INCREMENT |
 | `name` | VARCHAR(100) | NOT NULL |
-| `slug` | VARCHAR(100) | UNIQUE |
 | `description` | TEXT | Nullable |
 | `primary_color` | VARCHAR(7) | Ej: #FF5733 |
 | `secondary_color` | VARCHAR(7) | Ej: #FFC300 |
 | `bg_color` | VARCHAR(7) | Color de fondo |
 | `bg_image_url` | VARCHAR(500) | Nullable |
 | `css_class` | VARCHAR(100) | Clase CSS principal |
-| `is_active` | BOOLEAN | DEFAULT TRUE |
 | `created_at` | TIMESTAMP | Automático |
 
 **Ejemplo de Theme:**
@@ -100,7 +95,6 @@ Catálogo de temas visuales personalizables.
 ```
 id: 1
 name: "Elegante Dorado"
-slug: "elegante-dorado"
 primary_color: "#FFD700"
 secondary_color: "#FFF"
 bg_color: "#F5F5F5"
@@ -111,46 +105,21 @@ css_class: "theme-elegant-gold"
 
 ### Media
 
-Imágenes asociadas a una landing.
+Archivos multimedia (imágenes, GIFs) compartidos entre landings e invitaciones.
 
 | Campo | Tipo | Restricción |
 |-------|------|------------|
 | `id` | INT | PK, AUTO_INCREMENT |
-| `landing_id` | INT | FK → Landings |
-| `file_path` | VARCHAR(500) | URL del archivo |
-| `public_url` | VARCHAR(500) | URL pública (CDN/storage) |
-| `type` | ENUM | 'image' (MVP) |
-| `mime_type` | VARCHAR(50) | Ej: image/jpeg |
+| `file_path` | VARCHAR(500) | Ruta del archivo |
+| `type` | ENUM | 'image', 'gif' |
 | `file_size` | INT | Bytes |
-| `sort_order` | INT | Orden en galería |
-| `is_active` | BOOLEAN | DEFAULT TRUE |
 | `created_at` | TIMESTAMP | Automático |
 
 **Restricciones:**
-- Máximo 50 media por landing
-- Tipos: JPG, PNG, WebP
-- Tamaño máximo: 5 MB
-- Soft delete lógico
-
----
-
-### SystemControl
-
-Entidad de configuración del sistema para controlar límites y metadatos de media.
-
-| Campo | Tipo | Restricción |
-|-------|------|------------|
-| `id` | INT | PK, AUTO_INCREMENT |
-| `max_images_per_landing` | INT | DEFAULT 50 |
-| `max_file_size_mb` | INT | DEFAULT 5 |
-| `allowed_mime` | JSON | Lista de MIME permitidos |
-| `thumbnails_enabled` | BOOLEAN | DEFAULT TRUE |
-| `gif_enabled` | BOOLEAN | DEFAULT FALSE (futuro) |
-| `updated_at` | TIMESTAMP | Automático |
-
-**Notas:**
-- Una sola fila de configuración global (puede versionarse a futuro).
-- Controla validaciones de subida y generación de thumbnails.
+- Máximo 20 media por landing/invitación
+- Tipos: JPG, PNG, WebP, GIF
+- Tamaño máximo: 10 MB
+- Uso compartido mediante tablas pivot
 
 ---
 
@@ -162,7 +131,6 @@ Página de invitación (San Valentín u otros eventos) con mensajes personalizad
 |-------|------|------------|
 | `id` | INT | PK, AUTO_INCREMENT |
 | `user_id` | INT | FK → Users (NOT NULL) |
-| `landing_id` | INT | FK → Landings (nullable) |
 | `slug` | VARCHAR(50) | UNIQUE, NOT NULL |
 | `title` | VARCHAR(200) | DEFAULT '¿Quieres ser mi San Valentín?' |
 | `yes_message` | VARCHAR(100) | DEFAULT 'Sí' |
@@ -179,32 +147,38 @@ Página de invitación (San Valentín u otros eventos) con mensajes personalizad
 
 **Restricciones:**
 - Slug único para acceso público
-- `landing_id` nullable: puede existir independiente de landing
 - JSON simple para mensajes de "No" (no rompe 3NF, lista atómica)
+
+---
+
+### LandingMedia
+
+Tabla pivot para relacionar Media con Landing, incluyendo orden.
+
+| Campo | Tipo | Restricción |
+|-------|------|------------|
+| `landing_id` | INT | FK → Landings |
+| `media_id` | INT | FK → Media |
+| `sort_order` | INT | Orden en galería |
+
+**Restricciones:**
+- Clave primaria compuesta: (landing_id, media_id)
+- Máximo 20 media por landing
 
 ---
 
 ### InvitationMedia
 
-Elementos multimedia (GIFs, imágenes) para invitaciones.
+Tabla pivot para relacionar Media con Invitation.
 
 | Campo | Tipo | Restricción |
 |-------|------|------------|
-| `id` | INT | PK, AUTO_INCREMENT |
 | `invitation_id` | INT | FK → Invitations |
-| `file_path` | VARCHAR(500) | Ruta del archivo |
-| `public_url` | VARCHAR(500) | URL pública (CDN) |
-| `type` | ENUM | 'image', 'gif' |
-| `mime_type` | VARCHAR(50) | Ej: image/gif |
-| `file_size` | INT | Bytes |
-| `sort_order` | INT | Orden de visualización |
-| `is_active` | BOOLEAN | DEFAULT TRUE |
-| `created_at` | TIMESTAMP | Automático |
+| `media_id` | INT | FK → Media |
 
 **Restricciones:**
-- Máximo 10 elementos multimedia por invitación
-- Tipos permitidos: image/gif, image/png, image/jpeg, image/webp
-- Tamaño máximo: 10 MB (GIFs pueden ser más pesados)
+- Clave primaria compuesta: (invitation_id, media_id)
+- Máximo 20 media por invitación
 
 ---
 
@@ -219,12 +193,13 @@ Elementos multimedia (GIFs, imágenes) para invitaciones.
 │ password                       │
 │ name                           │
 │ created_at, updated_at         │
-│ deleted_at (soft delete)       │
 └────────────────────────────────┘
            │
            │ 1:N (user_id)
-           │ ON DELETE CASCADE
            │
+    ┌──────┴──────┐
+    │             │
+    ▼             ▼
 ┌────────────────────────────────────────────┐
 │          LANDINGS                          │
 ├────────────────────────────────────────────┤
@@ -235,99 +210,47 @@ Elementos multimedia (GIFs, imágenes) para invitaciones.
 │ couple_names               │               │
 │ anniversary_date           │               │
 │ bio_text                   │               │
-│ is_published               │               │
 │ created_at, updated_at     │               │
-│ deleted_at (soft delete)   │               │
 └────────────────────────────────────────────┘
-           │
-           │ 1:N (landing_id)
-           │
-┌────────────────────────────────┐
-│          MEDIA                 │
-├────────────────────────────────┤
+           │                    │
+           │ N:M via            │ M:1
+           │ LANDING_MEDIA      │
+           ▼                    ▼
+┌────────────────────────────────┐ ┌────────────────────────────────┐
+│      LANDING_MEDIA (PIVOT)     │ │         THEMES                 │
+├────────────────────────────────┤ ├────────────────────────────────┤
+│ landing_id (FK)                │ │ id (PK)                        │
+│ media_id (FK)                  │ │ name                           │
+│ sort_order                     │ │ description                    │
+└────────────────────────────────┘ │ primary_color                  │
+           │                       │ secondary_color                │
+           │ N:1                   │ bg_color                       │
+           ▼                       │ bg_image_url                   │
+┌────────────────────────────────┐ │ css_class                      │
+│          MEDIA                 │ │ created_at                     │
+├────────────────────────────────┤ └────────────────────────────────┘
 │ id (PK)                        │
-│ landing_id (FK)                │
-│ file_path                      │
-│ public_url                     │
-│ type (image)                   │
-│ mime_type                      │
-│ file_size                      │
-│ sort_order                     │
-│ is_active                      │
-│ created_at                     │
-└────────────────────────────────┘
-
-┌────────────────────────────────┐
-│      SYSTEM_CONTROL            │
-├────────────────────────────────┤
-│ id (PK)                        │
-│ max_images_per_landing         │
-│ max_file_size_mb               │
-│ allowed_mime (JSON)            │
-│ thumbnails_enabled             │
-│ gif_enabled                    │
-│ updated_at                     │
-└────────────────────────────────┘
-
-           M:1 ────────────┐
-                           │
-┌────────────────────────────────┐
-│         THEMES                 │
-├────────────────────────────────┤
-│ id (PK)                        │
-│ name                           │
-│ slug (UNIQUE)                  │
-│ primary_color                  │
-│ secondary_color                │
-│ bg_color                       │
-│ bg_image_url                   │
-│ css_class                      │
-│ is_active                      │
-│ created_at                     │
-└────────────────────────────────┘
-
-[USERS] ────────┐
-                │
-                │ 1:N (user_id)
-                │
-┌────────────────────────────────────────────┐
-│          INVITATIONS                       │
-├────────────────────────────────────────────┤
-│ id (PK)                                    │
-│ user_id (FK)                               │
-│ landing_id (FK, nullable)                  │
-│ slug (UNIQUE)                              │
-│ title                                      │
-│ yes_message                                │
-│ no_messages (JSON)                         │
-│ is_published                               │
-│ created_at, updated_at                     │
-│ deleted_at (soft delete)                   │
-└────────────────────────────────────────────┘
-           │
-           │ 1:N (invitation_id)
-           │
-┌────────────────────────────────┐
-│     INVITATION_MEDIA           │
-├────────────────────────────────┤
-│ id (PK)                        │
-│ invitation_id (FK)             │
-│ file_path                      │
-│ public_url                     │
-│ type (image/gif)               │
-│ mime_type                      │
-│ file_size                      │
-│ sort_order                     │
-│ is_active                      │
-│ created_at                     │
+│ file_path                      │          ┌────────────────────────────────────────────┐
+│ type (image/gif)               │          │          INVITATIONS                       │
+│ file_size                      │          ├────────────────────────────────────────────┤
+│ created_at                     │          │ id (PK)                                    │
+└────────────────────────────────┘          │ user_id (FK) ──────────────────────────────┤
+           │                                │ slug (UNIQUE)                              │
+           │ 1:N                            │ title                                      │
+           ▼                                │ yes_message                                │
+┌────────────────────────────────┐          │ no_messages (JSON)                         │
+│   INVITATION_MEDIA (PIVOT)     │          │ is_published                               │
+├────────────────────────────────┤          │ created_at, updated_at                     │
+│ invitation_id (FK) ────────────┼──────────┤ deleted_at (soft delete)                   │
+│ media_id (FK)                  │          └────────────────────────────────────────────┘
 └────────────────────────────────┘
 ```
 
 **Cumplimiento de 3NF:**
 
 ✅ **1NF:** Todos los valores son atómicos
-✅ **2NF:** Sin dependencias parciales
-✅ **3NF:** `Themes` y `Media` separados evitan redundancia
+✅ **2NF:** Sin dependencias parciales  
+✅ **3NF:** `Themes` y `Media` separados evitan redundancia, tablas pivot manejan relaciones N:M
 
 ---
 
@@ -337,7 +260,6 @@ Elementos multimedia (GIFs, imágenes) para invitaciones.
 
 - Un usuario puede tener múltiples landings
 - Cada landing pertenece a un usuario
-- ON DELETE CASCADE: Al borrar usuario, se borran todas sus landings
 
 ```php
 // User.php
@@ -359,7 +281,6 @@ public function user(): BelongsTo
 
 - Muchas landings pueden usar el mismo tema
 - El usuario puede cambiar de tema sin perder contenido
-- ON DELETE RESTRICT: No se puede borrar tema si hay landings usándolo
 
 ```php
 // Landing.php
@@ -377,25 +298,25 @@ public function landings(): HasMany
 
 ---
 
-### Landing ↔ Media (1:N)
+### Landing ↔ Media (N:M via LandingMedia)
 
-- Una landing tiene múltiples imágenes
-- Las imágenes no existen sin landing
-- ON DELETE CASCADE: Al borrar landing, se borran imágenes
+- Una landing puede tener múltiples media y una media puede estar en múltiples landings
+- Relación controlada por tabla pivot LandingMedia con orden
 
 ```php
 // Landing.php
-public function media(): HasMany
+public function media(): BelongsToMany
 {
-    return $this->hasMany(Media::class)
-        ->where('is_active', true)
+    return $this->belongsToMany(Media::class, 'landing_media')
+        ->withPivot('sort_order')
         ->orderBy('sort_order');
 }
 
 // Media.php
-public function landing(): BelongsTo
+public function landings(): BelongsToMany
 {
-    return $this->belongsTo(Landing::class);
+    return $this->belongsToMany(Landing::class, 'landing_media')
+        ->withPivot('sort_order');
 }
 ```
 
@@ -405,7 +326,6 @@ public function landing(): BelongsTo
 
 - Un usuario puede crear múltiples invitaciones
 - Cada invitación pertenece a un usuario
-- ON DELETE CASCADE: Al borrar usuario, se borran todas sus invitaciones
 
 ```php
 // User.php
@@ -423,46 +343,22 @@ public function user(): BelongsTo
 
 ---
 
-### Invitation ↔ InvitationMedia (1:N)
+### Invitation ↔ Media (N:M via InvitationMedia)
 
-- Una invitación tiene múltiples elementos multimedia (GIFs/imágenes)
-- Los elementos multimedia no existen sin invitación
-- ON DELETE CASCADE: Al borrar invitación, se borran sus multimedia
-
-```php
-// Invitation.php
-public function media(): HasMany
-{
-    return $this->hasMany(InvitationMedia::class)
-        ->where('is_active', true)
-        ->orderBy('sort_order');
-}
-
-// InvitationMedia.php
-public function invitation(): BelongsTo
-{
-    return $this->belongsTo(Invitation::class);
-}
-```
-
----
-
-### Invitation ↔ Landing (opcional, N:1)
-
-- Una invitación puede estar vinculada a una landing (nullable)
-- Permite crear invitaciones independientes o asociadas a una landing específica
+- Una invitación puede tener múltiples media y una media puede estar en múltiples invitaciones
+- Relación controlada por tabla pivot InvitationMedia
 
 ```php
 // Invitation.php
-public function landing(): BelongsTo
+public function media(): BelongsToMany
 {
-    return $this->belongsTo(Landing::class);
+    return $this->belongsToMany(Media::class, 'invitation_media');
 }
 
-// Landing.php
-public function invitations(): HasMany
+// Media.php
+public function invitations(): BelongsToMany
 {
-    return $this->hasMany(Invitation::class);
+    return $this->belongsToMany(Invitation::class, 'invitation_media');
 }
 ```
 
@@ -522,51 +418,23 @@ Los cambios se guardan en Landing, no en Theme
 
 ---
 
-### RN4: Publicación de Landing
+### RN4: Límite de Imágenes
 
-El usuario controla la visibilidad de su landing.
-
-```
-Estados:
-- is_published = false → Solo accesible para propietario (draft)
-- is_published = true → Accesible públicamente vía /p/{slug}
-
-Ruta pública valida: is_published && exists(slug)
-```
-
----
-
-### RN5: Soft Delete
-
-Landings eliminadas se marcan pero no se borran físicamente.
-
-```
-Implementación:
-- Modelo Landing usa SoftDeletes trait
-- Campo deleted_at NULL = activa, filled = eliminada
-- Queries no devuelven landings eliminadas por defecto
-- Solo el propietario puede ver su landing eliminada
-```
-
----
-
-### RN6: Límite de Imágenes
-
-Máximo 50 imágenes por landing.
+Máximo 20 media por landing o invitación.
 
 ```
 Validación en MediaService::uploadImage()
-- Leer límites desde SystemControl (max_images_per_landing, max_file_size_mb, allowed_mime)
-- Contar media activas: Media::where('landing_id', $id)
-                             ->where('is_active', true)
-                             ->count()
-- Si count >= max_images_per_landing, rechazar carga
-- Validar tamaño y MIME contra configuración
+- Máximo 20 media por landing o invitación
+- Contar media via pivot tables:
+  * Landing: LandingMedia::where('landing_id', $id)->count()
+  * Invitation: InvitationMedia::where('invitation_id', $id)->count()
+- Tamaño máximo: 10 MB
+- Formatos: JPG, PNG, WebP, GIF
 ```
 
 ---
 
-### RN7: Invitaciones Personalizadas
+### RN5: Invitaciones Personalizadas
 
 Entidad independiente para crear invitaciones (ej: San Valentín) con mensajes personalizables.
 
@@ -577,17 +445,17 @@ Características:
 - Lista de mensajes de respuesta negativa (JSON array)
   Default: ["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"]
 - Slug único para URL pública (/invitaciones/{slug})
-- Multimedia independiente: GIFs e imágenes (max 10 elementos)
-- Tamaño máximo GIF: 10MB
-- Puede vincularse opcionalmente a una Landing (landing_id nullable)
+- Multimedia via tabla pivot InvitationMedia
+- Máximo 20 media por invitación
+- Tamaño máximo: 10MB (incluyendo GIFs)
 - is_published controla visibilidad pública
 - Soft delete habilitado
 
 Validación en InvitationService::createInvitation():
 - Slug único generado automáticamente
-- Máximo 10 elementos multimedia por invitación
-- GIFs solo permitidos si `gif_enabled` en SystemControl es true
-- Validar tamaño y MIME contra configuración
+- Máximo 20 elementos multimedia por invitación
+- Formatos: JPG, PNG, WebP, GIF
+- Validar tamaño máximo 10MB
 ```
 
 ---
@@ -600,7 +468,7 @@ La arquitectura separa acceso a datos de lógica de negocio:
 // LandingRepositoryInterface
 interface LandingRepositoryInterface {
     public function findBySlug(string $slug): ?Landing;
-    public function findByUser(User $user): ?Landing;
+    public function findByUser(User $user): Collection;
     public function create(array $data): Landing;
     public function update(int $id, array $data): Landing;
     public function delete(int $id): void;
@@ -611,9 +479,7 @@ class EloquentLandingRepository implements LandingRepositoryInterface {
     public function __construct(private Landing $model) {}
     
     public function findBySlug(string $slug): ?Landing {
-        return $this->model->where('slug', $slug)
-            ->where('is_published', true)
-            ->first();
+        return $this->model->where('slug', $slug)->first();
     }
     // ... otros métodos
 }
@@ -629,7 +495,7 @@ class LandingService {
         // Generar slug
         $slug = $this->slugService->generate($data['couple_names']);
         
-        // Crear via repositorio
+        // Crear via repositorio (auto-published)
         return $this->repo->create([
             'user_id' => $user->id,
             'theme_id' => $data['theme_id'],

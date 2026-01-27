@@ -15,14 +15,12 @@ class Theme extends Model
      */
     protected $fillable = [
         'name',
-        'slug',
         'description',
         'primary_color',
         'secondary_color',
         'bg_color',
         'bg_image_url',
         'css_class',
-        'is_active',
     ];
 
     /**
@@ -31,7 +29,6 @@ class Theme extends Model
     protected function casts(): array
     {
         return [
-            'is_active' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
@@ -43,21 +40,5 @@ class Theme extends Model
     public function landings(): HasMany
     {
         return $this->hasMany(Landing::class);
-    }
-
-    /**
-     * Scope para obtener solo temas activos
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Accessor para el slug único
-     */
-    public function getRouteKeyName(): string
-    {
-        return 'slug';
     }
 }

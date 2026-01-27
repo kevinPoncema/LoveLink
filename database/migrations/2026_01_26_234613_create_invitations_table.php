@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('invitations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('landing_id')->nullable()->constrained()->onDelete('set null');
             $table->string('slug', 50)->unique();
             $table->string('title', 200)->default('¿Quieres ser mi San Valentín?');
             $table->string('yes_message', 100)->default('Sí');
@@ -25,7 +24,6 @@ return new class extends Migration
 
             $table->index('slug');
             $table->index('user_id');
-            $table->index('landing_id');
             $table->index('is_published');
             $table->index('deleted_at');
         });

@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invitation_media', function (Blueprint $table) {
-            $table->foreignId('invitation_id')->constrained()->onDelete('cascade');
+        Schema::create('landing_media', function (Blueprint $table) {
+            $table->foreignId('landing_id')->constrained()->onDelete('cascade');
             $table->foreignId('media_id')->constrained()->onDelete('cascade');
+            $table->unsignedTinyInteger('sort_order')->default(1);
 
-            $table->primary(['invitation_id', 'media_id']);
+            $table->primary(['landing_id', 'media_id']);
+            $table->index('sort_order');
         });
     }
 
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('invitation_media');
+        Schema::dropIfExists('landing_media');
     }
 };

@@ -30,10 +30,9 @@ El sistema permite registro e inicio de sesión con email y contraseña.
 Un usuario autenticado puede crear **múltiples landing pages**, cada una con su propio slug único.
 
 - **RF2.1** - Un usuario puede tener N landings (relación 1:N)
-- **RF2.2** - Slug único generado automáticamente (3-50 caracteres, alfanumérico + guiones)
+- **RF2.2** - Slug único generado automáticamente (3-50 caracteres, alfanumérico + guiones) o personalizado
 - **RF2.3** - Campos: nombres de pareja, fecha de aniversario, bio
 - **RF2.4** - Selección de tema base al crear
-- **RF2.5** - Estado: draft o published
 
 ---
 
@@ -53,9 +52,9 @@ El propietario personaliza contenido y apariencia.
 
 El usuario gestiona imágenes en su landing.
 
-- **RF4.1** - Subir imágenes: JPG, PNG, WebP (máx. 5 MB)
-- **RF4.2** - Máximo 50 imágenes por landing
-- **RF4.3** - Reordenamiento drag & drop
+- **RF4.1** - Subir imágenes: JPG, PNG, WebP (máx. 15 MB)
+- **RF4.2** - Máximo  10 imágenes por landing
+- **RF4.3** - Reordenamiento drag & drop (opcional)
 - **RF4.4** - Eliminación lógica
 - **RF4.5** - **(OPCIONAL)** Thumbnails automáticos
 - **RF4.6** - Guardar URL pública (CDN/storage) de cada imagen
@@ -64,7 +63,7 @@ El usuario gestiona imágenes en su landing.
 
 ### RF5: Temas Visuales Personalizables
 
-El usuario selecciona y personaliza un tema.
+El usuario puede seleccionar un tema del sitema o crear y personalizar un tema.
 
 - **RF5.1** - Catálogo de al menos 3 temas
 - **RF5.2** - Cada tema: nombre, colores por defecto, config
@@ -92,12 +91,10 @@ Entidad independiente para crear invitaciones (ej: San Valentín) con mensajes p
 - **RF7.2** - Mensaje de respuesta afirmativa editable (default: "Sí")
 - **RF7.3** - Lista de mensajes de respuesta negativa personalizables (default: ["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"])
 - **RF7.4** - Slug único generado automáticamente para URL pública (`/invitaciones/{slug}`)
-- **RF7.5** - Soporte para multimedia (imágenes y GIFs, max 10 elementos)
-- **RF7.6** - GIFs habilitados hasta 10MB cuando `gif_enabled` en SystemControl es `true`
-- **RF7.7** - Control de publicación con `is_published`
-- **RF7.8** - Vinculación opcional con Landing existente (`landing_id` nullable)
-- **RF7.9** - Soft delete habilitado
-- **RF7.10** - Gestión independiente de multimedia con `InvitationMedia`
+- **RF7.5** - Soporte para multimedia (imágenes y GIFs, max 5 elementos)
+- **RF7.6** - GIFs habilitados hasta 10MB
+- **RF7.7** - Soft delete habilitado
+- **RF7.8** - Gestión independiente de multimedia con `InvitationMedia`
 
 ---
 
@@ -150,15 +147,12 @@ Entidad independiente para crear invitaciones (ej: San Valentín) con mensajes p
 ### RNF4: Testing
 
 - **RNF4.1** - Tests Feature para casos principales
-- **RNF4.2** - Tests Unit para Services
-- **RNF4.3** - Cobertura mínima: 60%
-
 ---
 
 ### RNF5: Rendimiento
 
 - **RNF5.1** - Eager loading (evitar N+1)
-- **RNF5.2** - Índices en columnas frecuentes
+- **RNF5.2** - Índices en columnas frecuentes solo las esenciales
 - **RNF5.3** - **(FUTURO)** Caché de landings públicas
 
 ---
@@ -195,7 +189,6 @@ Toda funcionalidad debe cumplir:
 ✅ **Seguridad:**
 - Validación en Form Requests
 - Sin SQL injection (Eloquent)
-- Autorización verificada (Policies)
 
 ✅ **Mobile:**
 - Responsive 320px+
@@ -203,6 +196,6 @@ Toda funcionalidad debe cumplir:
 
 ---
 
-**Versión:** 1.0  
+**Versión:** 1.2 
 **Última actualización:** Enero 2026  
 **Autor:** Kevin (Equipo de Desarrollo)
