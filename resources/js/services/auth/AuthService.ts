@@ -7,49 +7,61 @@ import type {
     DashboardStats
 } from '@/types/auth';
 import { apiClient } from '../ApiClient';
+import { router } from '@inertiajs/vue3';
 
 export class AuthService {
     /**
-     * Autenticar usuario con email y contraseña
+     * Autenticar usuario con email y contraseña usando Fortify
      */
     async login(credentials: LoginData): Promise<AuthResponse> {
-        const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+        // Obtener CSRF token primero
+        await apiClient.get('/sanctum/csrf-cookie');
         
-        if (response.data && response.data.token) {
-            // Guardar token y usuario en localStorage
-            apiClient.setAuthToken(response.data.token);
-            this.setUser(response.data.user);
-            return response.data;
-        }
+        // Hacer login usando el endpoint de Fortify
+        const response = await apiClient.post('/login', credentials);
         
-        throw new Error(response.message || 'Error en el login');
+        // Para Fortify con autenticación basada en sesiones, no hay token
+        // El usuario quedará autenticado automáticamente por Laravel
+        
+        // Obtener datos del usuario después del login
+        const user = await this.getUser();
+        
+        return {
+            user,
+            token: null, // No usamos tokens con Fortify sessions
+        };
     }
 
     /**
-     * Registrar nuevo usuario
+     * Registrar nuevo usuario usando Fortify
      */
     async register(userData: RegisterData): Promise<AuthResponse> {
-        const response = await apiClient.post<AuthResponse>('/auth/register', userData);
+        // Obtener CSRF token primero
+        await apiClient.get('/sanctum/csrf-cookie');
         
-        if (response.data && response.data.token) {
-            // Guardar token y usuario en localStorage
-            apiClient.setAuthToken(response.data.token);
-            this.setUser(response.data.user);
-            return response.data;
-        }
+        // Hacer registro usando el endpoint de Fortify
+        const response = await apiClient.post('/register', userData);
         
-        throw new Error(response.message || 'Error en el registro');
+        // Para Fortify con autenticación basada en sesiones, no hay token
+        // El usuario quedará autenticado automáticamente por Laravel
+        
+        // Obtener datos del usuario después del registro
+        const user = await this.getUser();
+        
+        return {
+            user,
+            token: null, // No usamos tokens con Fortify sessions
+        };
     }
 
     /**
-     * Cerrar sesión del usuario
+     * Cerrar sesión del usuario usando Fortify
      */
     async logout(): Promise<void> {
         try {
-            await apiClient.post('/auth/logout');
+            await apiClient.post('/logout');
         } finally {
             // Limpiar datos locales independientemente de la respuesta del servidor
-            apiClient.clearAuthToken();
             this.clearUser();
         }
     }
@@ -58,7 +70,7 @@ export class AuthService {
      * Obtener datos del usuario autenticado
      */
     async getUser(): Promise<User> {
-        const response = await apiClient.get<User>('/auth/user');
+        const response = await apiClient.get<User>('/user');
         
         if (response.data) {
             this.setUser(response.data);
@@ -72,7 +84,7 @@ export class AuthService {
      * Verificar si el usuario está autenticado
      */
     isAuthenticated(): boolean {
-        return !!apiClient.getAuthToken() && !!this.getStoredUser();
+        return !!this.getStoredUser();
     }
 
     /**

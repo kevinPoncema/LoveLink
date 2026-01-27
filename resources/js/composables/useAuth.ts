@@ -39,8 +39,8 @@ export function useAuth(): UseAuthReturn {
             const response: AuthResponse = await authService.login(credentials);
             user.value = response.user;
             
-            // Redirigir al dashboard después del login exitoso
-            router.visit('/dashboard');
+            // Fortify maneja la redirección automáticamente después del login exitoso
+            // No necesitamos hacer redirección manual
             
         } catch (err: any) {
             error.value = err.response?.data?.message || err.message || 'Error en el login';
@@ -61,8 +61,8 @@ export function useAuth(): UseAuthReturn {
             const response: AuthResponse = await authService.register(userData);
             user.value = response.user;
             
-            // Redirigir al dashboard después del registro exitoso
-            router.visit('/dashboard');
+            // Fortify maneja la redirección automáticamente después del registro exitoso
+            // No necesitamos hacer redirección manual
             
         } catch (err: any) {
             error.value = err.response?.data?.message || err.message || 'Error en el registro';
@@ -83,8 +83,8 @@ export function useAuth(): UseAuthReturn {
             await authService.logout();
             user.value = null;
             
-            // Redirigir al login después del logout
-            router.visit('/login');
+            // Fortify maneja la redirección automáticamente después del logout
+            // No necesitamos hacer redirección manual
             
         } catch (err: any) {
             // Incluso si falla la llamada al servidor, limpiamos el estado local

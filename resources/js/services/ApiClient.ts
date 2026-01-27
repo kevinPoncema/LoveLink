@@ -6,22 +6,13 @@ class ApiClient {
 
     constructor() {
         this.client = axios.create({
-            baseURL: '/api',
+            baseURL: '/', // Cambio: usar raíz en lugar de /api para rutas de Fortify
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
             },
-            withCredentials: true,
-        });
-
-        // Request interceptor para agregar token
-        this.client.interceptors.request.use((config) => {
-            const token = this.getAuthToken();
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
+            withCredentials: true, // Importante: para que Laravel mantenga las cookies de sesión
         });
 
         // Response interceptor para manejar errores globales
@@ -29,7 +20,6 @@ class ApiClient {
             (response) => response,
             (error) => {
                 if (error.response?.status === 401) {
-                    this.clearAuthToken();
                     // Redirigir al login si no está ya ahí
                     if (!window.location.pathname.includes('/login')) {
                         window.location.href = '/login';
@@ -69,20 +59,6 @@ class ApiClient {
             },
         });
         return response.data;
-    }
-
-    // Manejo de tokens
-    setAuthToken(token: string): void {
-        localStorage.setItem('auth_token', token);
-    }
-
-    getAuthToken(): string | null {
-        return localStorage.getItem('auth_token');
-    }
-
-    clearAuthToken(): void {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
     }
 
     // CSRF token setup (para Sanctum)

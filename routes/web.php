@@ -46,6 +46,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
+    // Ruta para obtener usuario autenticado (para AJAX requests)
+    Route::get('/user', function () {
+        return response()->json(auth()->user());
+    })->name('user');
+
     // TODO: Añadir más rutas protegidas aquí cuando se implementen las páginas
     // Route::get('/landings', [LandingController::class, 'index'])->name('landings.index');
     // Route::get('/invitations', [InvitationController::class, 'index'])->name('invitations.index');
