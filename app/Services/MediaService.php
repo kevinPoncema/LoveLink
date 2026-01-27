@@ -10,9 +10,14 @@ use Illuminate\Support\Str;
 
 class MediaService
 {
+    protected $disk;
+    
     public function __construct(
         protected MediaRepository $mediaRepository
-    ) {}
+    ) {
+        $diskName = env('MEDIA_STORAGE_DRIVER', 'local') === 's3' ? 'media_cloud' : 'media';
+        $this->disk = Storage::disk($diskName);
+    }
 
     /**
      * Sube un archivo multimedia
@@ -23,13 +28,13 @@ class MediaService
         
         $path = $this->generateFilePath($file);
         
-        $storedPath = Storage::disk('public')->putFileAs(
-            "media/users/{$userId}", 
+        $storedPath = $this->disk->putFileAs(
+            "users/{$userId}", 
             $file, 
             $path
         );
         
-        $url = Storage::disk('public')->url($storedPath);
+        $url = $this->disk->url($storedPath);
         
         return $this->mediaRepository->create([
             'user_id' => $userId,
@@ -75,8 +80,9 @@ class MediaService
             return false;
         }
         
-        if (Storage::disk('public')->exists($media->path)) {
-            Storage::disk('public')->delete($media->path);
+        // Eliminar archivo del storage
+        if ($this->disk->exists($media->path)) {
+            $this->disk->delete($media->path);
         }
         
         return $this->mediaRepository->delete($mediaId);

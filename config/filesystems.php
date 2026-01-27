@@ -60,6 +60,30 @@ return [
             'report' => false,
         ],
 
+        // Media storage disks for development and production
+        'media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/media'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage/media',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'media_cloud' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION', 'ams3'),
+            'bucket' => env('AWS_BUCKET', 'uspage-media-ams3'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT', 'https://ams3.digitaloceanspaces.com'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*
