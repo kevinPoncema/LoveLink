@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { Link, Head } from '@inertiajs/vue3';
+import { Link, Head, router } from '@inertiajs/vue3';
 import { useAuth } from '@/composables/useAuth';
 import { useDashboard } from '@/composables/useDashboard';
 
@@ -55,8 +55,8 @@ const sections = computed(() => [
 
 // Métodos
 const handleSectionClick = (route: string) => {
-    // Por ahora solo mostramos una alerta, después implementaremos las rutas
-    alert(`Navegando a: ${route}`);
+    // Navegar a la ruta correspondiente
+    router.visit(route);
 };
 
 const handleCreateLanding = () => {

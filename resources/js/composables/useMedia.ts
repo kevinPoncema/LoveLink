@@ -20,9 +20,7 @@ export type UseMediaReturn = {
     uploadMedia: (file: File) => Promise<Media>;
     uploadMultipleMedia: (files: FileList | File[]) => Promise<Media[]>;
     deleteMedia: (id: number) => Promise<void>;
-    validateFile: (file: File) => boolean;
-    getPreviewUrl: (file: File) => string;
-    revokePreviewUrl: (url: string) => void;
+    validateFile: (file: File) => { valid: boolean; error?: string };
     formatFileSize: (bytes: number) => string;
     clearError: () => void;
 };
@@ -40,7 +38,7 @@ const images = computed(() => {
 });
 
 const totalSize = computed(() => {
-    return media.value.reduce((total, m) => total + m.size, 0);
+    return media.value.reduce((total, m) => total + m.size_bytes, 0);
 });
 
 const totalSizeFormatted = computed(() => {
@@ -160,23 +158,11 @@ export function useMedia(): UseMediaReturn {
     /**
      * Validar archivo
      */
-    const validateFile = (file: File): boolean => {
-        return mediaService.isValidImageFile(file);
+    const validateFile = (file: File): { valid: boolean; error?: string } => {
+        return mediaService.validateFile(file);
     };
 
-    /**
-     * Obtener URL de preview
-     */
-    const getPreviewUrl = (file: File): string => {
-        return mediaService.getPreviewUrl(file);
-    };
 
-    /**
-     * Limpiar URL de preview
-     */
-    const revokePreviewUrl = (url: string): void => {
-        mediaService.revokePreviewUrl(url);
-    };
 
     /**
      * Formatear tamaño de archivo
@@ -211,8 +197,6 @@ export function useMedia(): UseMediaReturn {
         uploadMultipleMedia,
         deleteMedia,
         validateFile,
-        getPreviewUrl,
-        revokePreviewUrl,
         formatFileSize,
         clearError,
     };
