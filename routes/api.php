@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Media\MediaController;
 use App\Http\Controllers\Themes\ThemeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,7 +29,11 @@ Route::group(['prefix' => 'auth', 'middleware' => 'auth:sanctum'], function () {
     Route::get('/user', [AuthController::class, 'user']);
 });
 
-// Protected themes routes
+// Protected routes
 Route::middleware(['auth:sanctum'])->group(function () {
+    // Themes routes
     Route::apiResource('themes', ThemeController::class);
+    
+    // Media routes
+    Route::apiResource('media', MediaController::class)->only(['index', 'store', 'destroy']);
 });
