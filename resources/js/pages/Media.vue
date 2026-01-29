@@ -238,10 +238,8 @@ onMounted(async () => {
                             v-model="filterType"
                             class="px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-rose-500"
                         >
-                            <option value="all">Todos los tipos</option>
+                            <option value="all">Todas las imágenes</option>
                             <option value="image">Imágenes</option>
-                            <option value="video">Videos</option>
-                            <option value="document">Documentos</option>
                         </select>
 
                         <!-- Vista -->

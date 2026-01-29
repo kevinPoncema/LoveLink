@@ -29,12 +29,30 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>();
 
 // Composables
-const { isUploading, uploadProgress, uploadMedia, uploadMultipleMedia, validateFile, getPreviewUrl, revokePreviewUrl, formatFileSize } = useMedia();
+const { isUploading, uploadProgress, uploadMedia, uploadMultipleMedia, validateFile } = useMedia();
+
+// Helper size
+const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 // Estado local
 const isDragOver = ref(false);
 const fileInput = ref<HTMLInputElement>();
 const previews = ref<Array<{file: File; url: string; valid: boolean}>>([]);
+
+// Helper para previews
+const getPreviewUrl = (file: File): string => {
+    return URL.createObjectURL(file);
+};
+
+const revokePreviewUrl = (url: string) => {
+    URL.revokeObjectURL(url);
+};
 
 // Computed
 const maxSizeBytes = computed(() => props.maxSize * 1024 * 1024);
@@ -50,7 +68,7 @@ const validateFileSize = (file: File): boolean => {
 
 const validateFileType = (file: File): boolean => {
     if (props.accept === '*' || props.accept.includes('*/*')) return true;
-    
+
     return acceptedTypes.value.some(type => {
         if (type.endsWith('/*')) {
             return file.type.startsWith(type.substring(0, type.length - 1));
@@ -96,11 +114,14 @@ const createPreviews = (files: File[]) => {
     previews.value = [];
 
     if (props.showPreview && files.length > 0) {
-        previews.value = files.map(file => ({
-            file,
-            url: getPreviewUrl(file),
-            valid: validateFileType(file) && validateFileSize(file) && validateFile(file)
-        }));
+        previews.value = files.map(file => {
+            const fileValidation = validateFile(file);
+            return {
+                file,
+                url: getPreviewUrl(file),
+                valid: validateFileType(file) && validateFileSize(file) && fileValidation.valid
+            };
+        });
     }
 };
 
@@ -115,15 +136,18 @@ const handleFiles = async (files: FileList | File[]) => {
     try {
         if (props.multiple) {
             const results = await uploadMultipleMedia(validFiles);
+            // La actualización del estado `media` se maneja en el composable,
+            // pero emitimos el evento para informar al padre si es necesario.
             emit('uploaded', results);
         } else {
             const result = await uploadMedia(validFiles[0]);
+             // La actualización del estado `media` se maneja en el composable.
             emit('uploaded', result);
         }
-        
+
         // Limpiar previews después del upload exitoso
         clearPreviews();
-        
+
     } catch (error: any) {
         emit('error', error.message || 'Error subiendo archivo');
     }
@@ -169,9 +193,9 @@ const handleDragLeave = (event: DragEvent) => {
 const handleDrop = (event: DragEvent) => {
     event.preventDefault();
     isDragOver.value = false;
-    
+
     if (props.disabled) return;
-    
+
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
         handleFiles(files);
@@ -201,8 +225,8 @@ const handleDrop = (event: DragEvent) => {
             class="border-2 border-dashed rounded-xl transition-all duration-200 cursor-pointer"
             :class="[
                 compact ? 'p-4' : 'p-8',
-                isDragOver 
-                    ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/20' 
+                isDragOver
+                    ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/20'
                     : 'border-stone-300 dark:border-stone-600 hover:border-stone-400 dark:hover:border-stone-500',
                 disabled ? 'opacity-50 cursor-not-allowed' : '',
                 isUploading ? 'pointer-events-none' : ''
@@ -218,7 +242,7 @@ const handleDrop = (event: DragEvent) => {
                         Subiendo... {{ uploadProgress }}%
                     </p>
                     <div class="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-2">
-                        <div 
+                        <div
                             class="bg-rose-500 h-2 rounded-full transition-all duration-300"
                             :style="{ width: uploadProgress + '%' }"
                         ></div>
@@ -230,7 +254,7 @@ const handleDrop = (event: DragEvent) => {
                     <div class="text-4xl">
                         📁
                     </div>
-                    
+
                     <div>
                         <p class="text-sm font-medium text-stone-700 dark:text-stone-300">
                             <span v-if="compact">Click para subir</span>
@@ -249,7 +273,7 @@ const handleDrop = (event: DragEvent) => {
             <h4 class="text-sm font-medium text-stone-700 dark:text-stone-300">
                 Archivos seleccionados:
             </h4>
-            
+
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 <div
                     v-for="(preview, index) in previews"
@@ -267,7 +291,7 @@ const handleDrop = (event: DragEvent) => {
                         <div v-else class="w-full h-full flex items-center justify-center text-2xl">
                             📄
                         </div>
-                        
+
                         <!-- Botón eliminar -->
                         <button
                             @click.stop="removePreview(index)"
@@ -275,7 +299,7 @@ const handleDrop = (event: DragEvent) => {
                         >
                             ×
                         </button>
-                        
+
                         <!-- Indicador de error -->
                         <div v-if="!preview.valid" class="absolute inset-0 bg-red-500/20 flex items-center justify-center">
                             <div class="bg-red-500 text-white text-xs px-2 py-1 rounded">
@@ -283,7 +307,7 @@ const handleDrop = (event: DragEvent) => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <p class="text-xs text-stone-600 dark:text-stone-400 mt-1 truncate" :title="preview.file.name">
                         {{ preview.file.name }}
                     </p>
