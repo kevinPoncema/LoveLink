@@ -2,10 +2,13 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
 
+import MediaUpload from '@/components/ui/MediaUpload.vue';
+
 import { useLandings } from '@/composables/useLandings';
+import { useMedia } from '@/composables/useMedia';
 import { useThemes } from '@/composables/useThemes';
 import { landingService } from '@/services/landing/LandingService';
-import { mediaService } from '@/services/media/MediaService';
+import type { Media } from '@/types/auth';
 
 const props = defineProps<{
     id?: number; // Optional ID for edit mode
@@ -13,6 +16,7 @@ const props = defineProps<{
 
 const { landing, createLanding, updateLanding, isLoading, error: landingError, loadLanding } = useLandings();
 const { loadThemes, systemThemes, userThemes } = useThemes();
+const { media: galleryMedia, loadMedia } = useMedia();
 
 // Form State
 const form = ref({
@@ -21,16 +25,22 @@ const form = ref({
     anniversary_date: '',
     bio_text: '',
     theme_id: null as number | null,
+    selected_media: [] as number[], // IDs for sync
 });
 
-// For media management
-const currentLandingMedia = ref<any[]>([]); 
+// Interface State
+const showMediaModal = ref(false);
+const localSelectedMedia = ref<number[]>([]);
+const previewMedia = ref<Media[]>([]);
 
 const isEditing = computed(() => !!props.id);
 
 onMounted(async () => {
-    // Load themes
-    await loadThemes();
+    // Load themes and gallery
+    await Promise.all([
+        loadThemes(),
+        loadMedia()
+    ]);
 
     if (isEditing.value && props.id) {
         await loadLanding(props.id);
@@ -43,10 +53,11 @@ onMounted(async () => {
                     : '',
                 bio_text: landing.value.bio_text || '',
                 theme_id: landing.value.theme_id,
+                selected_media: landing.value.media ? landing.value.media.map((m: any) => m.id) : [],
             };
-            if (landing.value.media) {
-                currentLandingMedia.value = landing.value.media;
-            }
+            
+            // Populate previews
+            previewMedia.value = (landing.value.media || []) as unknown as Media[];
         }
     } else {
          // Default theme selection
@@ -56,44 +67,62 @@ onMounted(async () => {
     }
 });
 
+const openMediaPicker = () => {
+    localSelectedMedia.value = [...form.value.selected_media];
+    showMediaModal.value = true;
+};
+
+const toggleMediaSelection = (mediaId: number) => {
+    if (localSelectedMedia.value.includes(mediaId)) {
+        localSelectedMedia.value = localSelectedMedia.value.filter(id => id !== mediaId);
+    } else {
+        localSelectedMedia.value.push(mediaId);
+    }
+};
+
+const confirmMediaSelection = () => {
+    form.value.selected_media = [...localSelectedMedia.value];
+    // Sync previews from the gallery media we have loaded
+    previewMedia.value = galleryMedia.value.filter(m => form.value.selected_media.includes(m.id));
+    showMediaModal.value = false;
+};
+
+const removeMedia = (mediaId: number) => {
+    form.value.selected_media = form.value.selected_media.filter(id => id !== mediaId);
+    previewMedia.value = previewMedia.value.filter(m => m.id !== mediaId);
+};
+
 const handleSubmit = async () => {
     try {
+        let landingId: number;
+
         if (isEditing.value && props.id) {
             await updateLanding(props.id, form.value);
-            router.visit('/landings');
+            landingId = props.id;
         } else {
             const newLanding = await createLanding(form.value);
-            // Redirect to edit to add media
-            router.visit(`/landings/${newLanding.id}/edit`);
+            landingId = newLanding.id;
+        }
+
+        // Handle Media Sync
+        const existingMediaIds = landing.value?.media ? landing.value.media.map((m: any) => m.id) : [];
+        const newMediaIds = form.value.selected_media;
+
+        const toAdd = newMediaIds.filter(id => !existingMediaIds.includes(id));
+        const toRemove = existingMediaIds.filter(id => !newMediaIds.includes(id));
+
+        for (const mid of toAdd) {
+            await landingService.attachMedia(landingId, mid);
+        }
+        for (const mid of toRemove) {
+            await landingService.detachMedia(landingId, mid);
+        }
+
+        if (!landingError.value) {
+            router.visit('/landings');
         }
     } catch (e) {
         console.error(e);
-    }
-};
-
-const handleAttachMedia = async (mediaId: number) => {
-    if (!props.id) return;
-    try {
-        await landingService.attachMedia(props.id, mediaId);
-        await loadLanding(props.id);
-        if (landing.value?.media) {
-            currentLandingMedia.value = landing.value.media;
-        }
-    } catch (e) {
-        console.error("Error attaching media", e);
-    }
-};
-
-const handleDetachMedia = async (mediaId: number) => {
-    if (!props.id) return;
-    try {
-        await landingService.detachMedia(props.id, mediaId);
-         await loadLanding(props.id);
-        if (landing.value?.media) {
-            currentLandingMedia.value = landing.value.media;
-        }
-    } catch (e) {
-        console.error("Error detaching media", e);
     }
 };
 
@@ -270,22 +299,31 @@ const handleDetachMedia = async (mediaId: number) => {
             </section>
 
              <!-- 3. Galería Multimedia -->
-             <section v-if="isEditing" class="bg-white dark:bg-stone-800 rounded-2xl p-8 border border-stone-200 dark:border-stone-700 shadow-sm">
-                <h2 class="text-lg font-bold text-stone-900 dark:text-stone-100 mb-6 flex items-center gap-2">
-                    <span class="bg-rose-100 dark:bg-rose-900 text-rose-600 dark:text-rose-400 w-8 h-8 rounded-full flex items-center justify-center text-sm">3</span>
-                    Galería de Fotos
-                </h2>
+             <section class="bg-white dark:bg-stone-800 rounded-2xl p-8 border border-stone-200 dark:border-stone-700 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                        <span class="bg-rose-100 dark:bg-rose-900 text-rose-600 dark:text-rose-400 w-8 h-8 rounded-full flex items-center justify-center text-sm">3</span>
+                        Galería de Fotos
+                    </h2>
+                    <button
+                        @click="openMediaPicker"
+                        class="text-sm bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:hover:bg-rose-900/50 px-4 py-2 rounded-lg font-medium transition-colors"
+                    >
+                        Gestionar Galería
+                    </button>
+                </div>
+
                 <div class="mb-6 text-sm text-stone-500 dark:text-stone-400 bg-stone-50 dark:bg-stone-900/50 p-4 rounded-xl border border-stone-100 dark:border-stone-700">
-                    <p>📸 <strong>Sube tus fotos favoritas.</strong> La primera foto que aparezca será utilizada como la imagen de portada y la que se muestra en redes sociales al compartir el enlace.</p>
+                    <p>📸 <strong>Personaliza tu historia.</strong> La primera foto será la portada. Puedes seleccionar fotos existentes o subir nuevas.</p>
                 </div>
                  
-                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-                    <div v-for="(media, index) in currentLandingMedia" :key="media.id" class="group relative aspect-square rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 shadow-sm">
+                 <div v-if="previewMedia.length > 0" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
+                    <div v-for="(media, index) in previewMedia" :key="media.id" class="group relative aspect-square rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 shadow-sm">
                         <img :src="media.url || media.path" class="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" />
                         
                         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                             <button @click="handleDetachMedia(media.id)" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-all transform hover:scale-110" title="Quitar">
-                                🗑️
+                             <button @click="removeMedia(media.id)" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-all transform hover:scale-110" title="Quitar">
+                                ✕
                             </button>
                         </div>
 
@@ -293,32 +331,83 @@ const handleDetachMedia = async (mediaId: number) => {
                             Portada
                         </div>
                     </div>
-                    
-                    <label class="flex flex-col items-center justify-center aspect-square rounded-xl border-2 border-dashed border-stone-200 dark:border-stone-700 hover:border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 cursor-pointer transition-all text-stone-400 hover:text-rose-500 group shadow-sm">
-                        <div class="bg-stone-100 dark:bg-stone-800 p-3 rounded-full mb-2 group-hover:bg-rose-100 dark:group-hover:bg-rose-900/30 transition-colors">
-                            <span class="text-2xl">+</span>
-                        </div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider">Añadir Foto</span>
-                        <input type="file" multiple class="hidden" accept="image/*" @change="async (e) => {
-                             const files = (e.target as HTMLInputElement).files;
-                             if (!files || !files.length) return;
-                             
-                             for(let i=0; i<files.length; i++) {
-                                 const uploaded = await mediaService.uploadMedia(files[i]);
-                                 await handleAttachMedia(uploaded.id);
-                             }
-                        }" />
-                    </label>
                  </div>
+
+                 <div v-else class="text-center py-12 border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-2xl">
+                    <p class="text-stone-500 dark:text-stone-400">No has seleccionado ninguna foto aún</p>
+                    <button
+                        @click="openMediaPicker"
+                        class="mt-2 text-rose-600 font-medium hover:underline"
+                    >
+                        Abrir Galería
+                    </button>
+                </div>
                  
-                 <p class="text-[11px] text-stone-400 italic text-center">* Por ahora las fotos se ordenan según las vas subiendo.</p>
+                 <p class="text-[11px] text-stone-400 italic text-center mt-6">* Las fotos se guardarán definitivamente al pulsar "Guardar Cambios".</p>
 
             </section>
-             <div v-else class="text-center p-12 bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 text-stone-500 space-y-3 shadow-sm">
-                <div class="text-3xl">🧩</div>
-                <p class="font-medium">Guarda la configuración básica primero para poder añadir fotos a tu galería.</p>
-            </div>
 
         </main>
+
+        <!-- Gallery Modal -->
+        <div v-if="showMediaModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div class="bg-white dark:bg-stone-800 w-full max-w-5xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                <div class="p-4 border-b border-stone-200 dark:border-stone-700 flex justify-between items-center bg-white dark:bg-stone-800">
+                    <h3 class="font-bold text-lg dark:text-stone-100">Seleccionar Fotos</h3>
+                    <button @click="showMediaModal = false" class="text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 text-2xl leading-none">&times;</button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 bg-stone-50 dark:bg-stone-900">
+                    <!-- Upload Section -->
+                    <div class="mb-8">
+                        <h4 class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-3">Subir Nuevas</h4>
+                        <MediaUpload @uploaded="loadMedia" />
+                    </div>
+
+                    <!-- Gallery Grid -->
+                    <div>
+                        <h4 class="text-sm font-bold text-stone-400 uppercase tracking-wider mb-3">Galería Existente</h4>
+                        <div v-if="galleryMedia.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <div
+                                v-for="item in galleryMedia"
+                                :key="item.id"
+                                @click="item.mime_type.startsWith('image/') ? toggleMediaSelection(item.id) : null"
+                                :class="[
+                                    'relative aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all',
+                                    localSelectedMedia.includes(item.id) ? 'border-rose-500 ring-2 ring-rose-500/20 shadow-lg' : 'border-transparent',
+                                    !item.mime_type.startsWith('image/') ? 'opacity-50 grayscale cursor-not-allowed' : ''
+                                ]"
+                            >
+                                <img
+                                    :src="item.url || item.path"
+                                    class="w-full h-full object-cover"
+                                />
+                                <div v-if="localSelectedMedia.includes(item.id)" class="absolute top-2 right-2 w-6 h-6 bg-rose-500 rounded-full flex items-center justify-center text-white text-xs shadow-md border-2 border-white">
+                                    ✓
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="text-center py-8 text-stone-500">
+                            No hay fotos en tu galería. ¡Sube algunas arriba!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 flex justify-end gap-3">
+                    <button
+                        @click="showMediaModal = false"
+                        class="px-5 py-2 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-700 rounded-xl transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        @click="confirmMediaSelection"
+                        class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-lg shadow-rose-600/20 transition-all font-medium"
+                    >
+                        Confirmar Selección ({{ localSelectedMedia.length }})
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
