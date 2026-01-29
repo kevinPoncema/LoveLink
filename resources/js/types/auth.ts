@@ -83,5 +83,5 @@ export type Theme = {
     created_at: string;
     updated_at: string;
     // Relaciones
-    bg_image?: Media;
+    bg_image?: Media | null;
 };

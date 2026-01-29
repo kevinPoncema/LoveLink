@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@/types/auth';
+import type { ApiResponse, Media } from '@/types/auth';
 import { apiClient } from '../ApiClient';
 
 // Tipos específicos para Theme
@@ -10,11 +10,14 @@ export type Theme = {
     secondary_color: string;
     bg_color: string;
     bg_image_url?: string;
+    bg_image_media_id?: number;
     css_class: string;
     is_system: boolean;
     user_id?: number;
     created_at: string;
     updated_at: string;
+    // Relación con Media
+    bg_image?: Media | null;
 };
 
 export type CreateThemeData = {
@@ -24,6 +27,7 @@ export type CreateThemeData = {
     secondary_color: string;
     bg_color: string;
     bg_image_file?: File;
+    bg_image_media_id?: number;
     bg_image_url?: string;
     css_class: string;
 };
@@ -41,7 +45,6 @@ export class ThemeService {
      */
     async getAvailableThemes(): Promise<Theme[]> {
         const response = await apiClient.get<{ themes: Theme[], message?: string }>('/api/themes');
-        console.log('ThemeService - API response:', response);
         return (response as any).themes || [];
     }
 
@@ -73,9 +76,11 @@ export class ThemeService {
             formData.append('description', data.description);
         }
 
-        // Agregar imagen si existe
+        // Agregar imagen como archivo o media_id
         if (data.bg_image_file) {
             formData.append('bg_image_file', data.bg_image_file);
+        } else if (data.bg_image_media_id) {
+            formData.append('bg_image_media_id', data.bg_image_media_id.toString());
         }
 
         const response = await apiClient.postFormData<ThemeUploadResponse>('/api/themes', formData);
@@ -107,7 +112,7 @@ export class ThemeService {
 
             response = await apiClient.postFormData<ThemeUploadResponse>(`/api/themes/${id}`, formData);
         } else {
-            // Sin archivo, usar JSON normal
+            // Sin archivo, usar JSON normal (puede incluir bg_image_media_id)
             response = await apiClient.put<ThemeUploadResponse>(`/api/themes/${id}`, data);
         }
 

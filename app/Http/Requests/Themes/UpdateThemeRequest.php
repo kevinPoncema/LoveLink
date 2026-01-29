@@ -28,6 +28,7 @@ class UpdateThemeRequest extends FormRequest
             'secondary_color' => ['sometimes', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'bg_color' => ['sometimes', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'bg_image_file' => ['sometimes', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'], // 10MB
+            'bg_image_media_id' => ['sometimes', 'nullable', 'integer', 'exists:media,id'],
             'bg_image_url' => ['sometimes', 'nullable', 'url', 'max:500'],
             'css_class' => ['sometimes', 'string', 'max:100'],
         ];

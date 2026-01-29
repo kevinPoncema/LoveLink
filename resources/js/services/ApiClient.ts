@@ -15,27 +15,33 @@ class ApiClient {
             withCredentials: true, // Important: allows Laravel to handle session cookies
         });
 
-        // Request interceptor to add CSRF token if not handled by cookie
-        this.client.interceptors.request.use(
-            (config) => {
-                // Try to get CSRF token from meta tag
-                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                if (token && config.headers) {
-                    config.headers['X-CSRF-TOKEN'] = token;
-                }
-                return config;
-            },
-            (error) => Promise.reject(error)
-        );
-
         // Response interceptor for global error handling
         this.client.interceptors.response.use(
             (response) => response,
-            (error) => {
+            async (error) => {
+                const originalRequest = error.config;
+
+                // Handle 419 CSRF token mismatch - refresh CSRF and retry once
+                if (error.response && error.response.status === 419 && !originalRequest._retry) {
+                    originalRequest._retry = true;
+
+                    try {
+                        // Refresh CSRF cookie
+                        await this.setupCsrf();
+
+                        // Retry the original request
+                        return this.client(originalRequest);
+                    } catch (csrfError) {
+                        console.error('Failed to refresh CSRF token:', csrfError);
+                        return Promise.reject(error);
+                    }
+                }
+
                 // Handle 401 Unauthorized globally if needed
                 if (error.response && error.response.status === 401) {
                     console.warn('Unauthorized access - Session may have expired.');
                 }
+
                 return Promise.reject(error);
             }
         );

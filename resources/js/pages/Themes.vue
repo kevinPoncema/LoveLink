@@ -98,6 +98,7 @@ const openEditModal = (theme: Theme) => {
         css_class: theme.css_class,
         bg_image_file: null,
     };
+    // Cargar la imagen de fondo desde la relación bg_image si existe
     selectedBackgroundMedia.value = theme.bg_image || null;
     showEditModal.value = true;
 };
@@ -123,6 +124,8 @@ const handleSubmit = async () => {
             secondary_color: form.value.secondary_color,
             bg_color: form.value.bg_color,
             css_class: form.value.css_class || formattedCssClass.value,
+            // Enviar media_id si hay un media seleccionado, sino enviar el file
+            bg_image_media_id: selectedBackgroundMedia.value?.id,
             bg_image_file: form.value.bg_image_file,
         };
 
@@ -164,11 +167,25 @@ const handleBackgroundUpload = (uploadedMedia: Media | Media[]) => {
 const removeBackground = () => {
     form.value.bg_image_file = null;
     selectedBackgroundMedia.value = null;
+    // Si estamos editando, asegurarnos de que se quite la referencia
+    if (editingTheme.value) {
+        editingTheme.value.bg_image = null;
+        editingTheme.value.bg_image_media_id = undefined;
+    }
 };
 
 const selectBackgroundFromMedia = (selectedMedia: Media) => {
     selectedBackgroundMedia.value = selectedMedia;
     showMediaSelector.value = false;
+};
+
+// Abrir selector de medios
+const openMediaSelector = async () => {
+    // Cargar medios solo cuando se abre el selector
+    if (media.value.length === 0) {
+        await loadMedia();
+    }
+    showMediaSelector.value = true;
 };
 
 // Helper para crear URL de blob
@@ -178,7 +195,8 @@ const createObjectURL = (file: File): string => {
 
 // Lifecycle
 onMounted(async () => {
-    await Promise.all([loadThemes(), loadMedia()]);
+    // Solo cargar temas al inicio, no medios
+    await loadThemes();
 });
 </script>
 
@@ -249,7 +267,15 @@ onMounted(async () => {
                             class="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden hover:shadow-md transition-shadow"
                         >
                             <!-- Preview del tema -->
-                            <div class="aspect-video p-4" :style="{ backgroundColor: theme.bg_color }">
+                            <div
+                                class="aspect-video p-4"
+                                :style="{
+                                    backgroundColor: theme.bg_color,
+                                    backgroundImage: theme.bg_image?.url || theme.bg_image_url ? `url(${theme.bg_image?.url || theme.bg_image_url})` : 'none',
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
+                                }"
+                            >
                                 <div class="space-y-2">
                                     <div
                                         class="w-full h-2 rounded"
@@ -307,7 +333,7 @@ onMounted(async () => {
                                 class="aspect-video p-4 relative"
                                 :style="{
                                     backgroundColor: theme.bg_color,
-                                    backgroundImage: theme.bg_image_url ? `url(${theme.bg_image_url})` : 'none',
+                                    backgroundImage: theme.bg_image?.url || theme.bg_image_url ? `url(${theme.bg_image?.url || theme.bg_image_url})` : 'none',
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center'
                                 }"
@@ -519,7 +545,7 @@ onMounted(async () => {
                             <!-- Seleccionar de galería -->
                             <button
                                 type="button"
-                                @click="showMediaSelector = true"
+                                @click="openMediaSelector"
                                 class="w-full px-4 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors"
                             >
                                 Seleccionar de mi galería
@@ -536,7 +562,11 @@ onMounted(async () => {
                             class="aspect-video rounded-xl p-6"
                             :style="{
                                 backgroundColor: form.bg_color,
-                                backgroundImage: (selectedBackgroundMedia?.public_url || selectedBackgroundMedia?.url) ? `url(${selectedBackgroundMedia.public_url || selectedBackgroundMedia.url})` : 'none',
+                                backgroundImage: form.bg_image_file
+                                    ? `url(${createObjectURL(form.bg_image_file)})`
+                                    : (selectedBackgroundMedia?.url || selectedBackgroundMedia?.public_url
+                                        ? `url(${selectedBackgroundMedia.url || selectedBackgroundMedia.public_url})`
+                                        : 'none'),
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center'
                             }"

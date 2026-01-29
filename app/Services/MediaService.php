@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 class MediaService
 {
     protected $disk;
-    
+
     public function __construct(
         protected MediaRepository $mediaRepository
     ) {
@@ -25,17 +25,17 @@ class MediaService
     public function uploadMedia(UploadedFile $file, int $userId): Media
     {
         $this->validateFile($file);
-        
+
         $path = $this->generateFilePath($file);
-        
+
         $storedPath = $this->disk->putFileAs(
-            "users/{$userId}", 
-            $file, 
+            "users/{$userId}",
+            $file,
             $path
         );
-        
+
         $url = $this->disk->url($storedPath);
-        
+
         return $this->mediaRepository->create([
             'user_id' => $userId,
             'filename' => $file->getClientOriginalName(),
@@ -52,19 +52,19 @@ class MediaService
     public function deleteMedia(int $mediaId, int $userId): bool
     {
         $media = $this->mediaRepository->findById($mediaId);
-        
-        if (!$media || $media->user_id !== $userId) {
+
+        if (! $media || $media->user_id !== $userId) {
             return false;
         }
-        
+
         if ($this->isMediaInUse($mediaId)) {
             return false;
         }
-        
-        if (Storage::disk('public')->exists($media->path)) {
-            Storage::disk('public')->delete($media->path);
+
+        if ($this->disk->exists($media->path)) {
+            $this->disk->delete($media->path);
         }
-        
+
         return $this->mediaRepository->delete($mediaId);
     }
 
@@ -75,16 +75,16 @@ class MediaService
     public function forceDeleteMedia(int $mediaId): bool
     {
         $media = $this->mediaRepository->findById($mediaId);
-        
-        if (!$media) {
+
+        if (! $media) {
             return false;
         }
-        
+
         // Eliminar archivo del storage
         if ($this->disk->exists($media->path)) {
             $this->disk->delete($media->path);
         }
-        
+
         return $this->mediaRepository->delete($mediaId);
     }
 
@@ -94,15 +94,15 @@ class MediaService
     public function validateFile(UploadedFile $file): bool
     {
         $allowedTypes = ['image/jpg', 'image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-        
-        if (!in_array($file->getMimeType(), $allowedTypes)) {
+
+        if (! in_array($file->getMimeType(), $allowedTypes)) {
             throw new \InvalidArgumentException('Tipo de archivo no permitido');
         }
-        
+
         if ($file->getSize() > 10485760) { // 10MB
             throw new \InvalidArgumentException('El archivo es demasiado grande (máximo 10MB)');
         }
-        
+
         return true;
     }
 
@@ -112,7 +112,8 @@ class MediaService
     public function generateFilePath(UploadedFile $file): string
     {
         $extension = $file->getClientOriginalExtension();
-        $filename = Str::uuid() . '.' . $extension;
+        $filename = Str::uuid().'.'.$extension;
+
         return $filename;
     }
 
@@ -125,11 +126,20 @@ class MediaService
     }
 
     /**
+     * Obtiene un media por ID
+     */
+    public function getMediaById(int $mediaId): ?Media
+    {
+        return $this->mediaRepository->findById($mediaId);
+    }
+
+    /**
      * Valida que el usuario sea propietario del media
      */
     public function validateUserOwnership(int $mediaId, int $userId): bool
     {
         $media = $this->mediaRepository->findById($mediaId);
+
         return $media && $media->user_id === $userId;
     }
 
@@ -139,17 +149,17 @@ class MediaService
     public function uploadThemeBackgroundImage(UploadedFile $file, int $userId): Media
     {
         $this->validateFile($file);
-        
+
         $path = $this->generateFilePath($file);
-        
-        $storedPath = Storage::disk('public')->putFileAs(
-            "media/themes/{$userId}", 
-            $file, 
+
+        $storedPath = $this->disk->putFileAs(
+            "users/{$userId}",
+            $file,
             $path
         );
-        
-        $url = Storage::disk('public')->url($storedPath);
-        
+
+        $url = $this->disk->url($storedPath);
+
         return $this->mediaRepository->create([
             'user_id' => $userId,
             'filename' => $file->getClientOriginalName(),
@@ -173,7 +183,7 @@ class MediaService
      */
     public function attachToTheme(int $themeId, int $mediaId, int $userId): void
     {
-        if (!$this->validateUserOwnership($mediaId, $userId)) {
+        if (! $this->validateUserOwnership($mediaId, $userId)) {
             throw new \InvalidArgumentException('No tienes permisos sobre este media');
         }
     }
@@ -184,6 +194,7 @@ class MediaService
     public function validateMediaLimit(string $entityType, int $entityId, int $limit): bool
     {
         $currentCount = $this->mediaRepository->countMediaByEntity($entityType, $entityId);
+
         return $currentCount < $limit;
     }
 
@@ -192,7 +203,7 @@ class MediaService
      */
     public function attachToLanding(int $landingId, int $mediaId, int $userId, int $sortOrder): void
     {
-        if (!$this->validateUserOwnership($mediaId, $userId)) {
+        if (! $this->validateUserOwnership($mediaId, $userId)) {
             throw new \InvalidArgumentException('No tienes permisos sobre este media');
         }
 
@@ -204,7 +215,7 @@ class MediaService
      */
     public function detachFromLanding(int $landingId, int $mediaId, int $userId): void
     {
-        if (!$this->validateUserOwnership($mediaId, $userId)) {
+        if (! $this->validateUserOwnership($mediaId, $userId)) {
             throw new \InvalidArgumentException('No tienes permisos sobre este media');
         }
 
@@ -216,7 +227,7 @@ class MediaService
      */
     public function attachToInvitation(int $invitationId, int $mediaId, int $userId): void
     {
-        if (!$this->validateUserOwnership($mediaId, $userId)) {
+        if (! $this->validateUserOwnership($mediaId, $userId)) {
             throw new \InvalidArgumentException('No tienes permisos sobre este media');
         }
 
@@ -228,7 +239,7 @@ class MediaService
      */
     public function detachFromInvitation(int $invitationId, int $mediaId, int $userId): void
     {
-        if (!$this->validateUserOwnership($mediaId, $userId)) {
+        if (! $this->validateUserOwnership($mediaId, $userId)) {
             throw new \InvalidArgumentException('No tienes permisos sobre este media');
         }
 

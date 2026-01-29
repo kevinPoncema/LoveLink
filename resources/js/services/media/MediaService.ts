@@ -16,7 +16,6 @@ class MediaService {
      */
     async getUserMedia(): Promise<Media[]> {
         const response = await apiClient.get<{ data: Media[], message?: string }>('/api/media');
-        console.log('MediaService - API response:', response);
         return (response as any).data || [];
     }
 

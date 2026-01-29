@@ -57,10 +57,6 @@ export function useThemes(): UseThemesReturn {
             const loadedThemes = await themeService.getAvailableThemes();
             themes.value = loadedThemes;
 
-            console.log('Themes loaded:', themes.value);
-            console.log('System themes:', systemThemes.value);
-            console.log('User themes:', userThemes.value);
-
         } catch (err: any) {
             error.value = err.message || 'Error cargando temas';
             console.error('Load themes error:', err);

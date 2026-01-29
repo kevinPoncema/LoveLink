@@ -28,6 +28,7 @@ class StoreThemeRequest extends FormRequest
             'secondary_color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'bg_color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'bg_image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'], // 10MB
+            'bg_image_media_id' => ['nullable', 'integer', 'exists:media,id'],
             'bg_image_url' => ['nullable', 'url', 'max:500'],
             'css_class' => ['required', 'string', 'max:100'],
         ];
