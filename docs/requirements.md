@@ -199,3 +199,83 @@ Toda funcionalidad debe cumplir:
 **Versión:** 1.2 
 **Última actualización:** Enero 2026  
 **Autor:** Kevin (Equipo de Desarrollo)
+
+---
+
+# 📋 Requerimientos Actualizados - UsPage (Enero 2026)
+
+Este documento especifica los requerimientos técnicos y funcionales para el MVP de UsPage, optimizado para una arquitectura de **Servicios y Repositorios**.
+
+---
+
+## 1. Requerimientos Funcionales (RF)
+
+### RF1: Gestión de Usuarios
+
+* **RF1.1 - Registro:** Creación de cuenta con email único y contraseña hasheada.
+* **RF1.2 - Autenticación:** Login y persistencia de sesión mediante Laravel Breeze/Sanctum.
+* **RF1.3 - Gestión de Perfil:** El usuario puede cerrar sesión y gestionar sus datos básicos.
+
+### RF2: Gestión de Landing Pages (Parejas)
+
+* **RF2.1 - Relación Propietario:** Un usuario puede gestionar múltiples landings (Relación 1:N).
+* **RF2.2 - Identificador Único (Slug):** Cada landing posee un slug alfanumérico único para su acceso público.
+* **RF2.3 - Datos de la Relación:** El sistema permite capturar nombres de la pareja, fecha de aniversario y un texto de biografía (Bio Text).
+* **RF2.4 - Estado de Publicación:** Las landings pueden marcarse como publicadas o privadas.
+
+### RF3: Personalización Estética
+
+* **RF3.1 - Selección de Tema:** El usuario elige un tema base del catálogo del sistema.
+* **RF3.2 - Paleta de Colores:** Capacidad de editar colores primarios, secundarios y de fondo sin afectar los datos del dominio.
+* **RF3.3 - Imagen de Fondo:** Definición de una imagen de fondo específica para el tema, independiente del álbum de fotos.
+* **RF3.4 - Vista Previa:** El editor debe reflejar los cambios en tiempo real antes de guardar.
+
+### RF4: Álbum Multimedia y Lógica de Portada
+
+* **RF4.1 - Carga de Archivos:** Soporte para imágenes (JPG, PNG, WebP) y GIFs de hasta 10MB.
+* **RF4.2 - Capacidad del Álbum:** Límite extendido de hasta 20 elementos multimedia por landing.
+* **RF4.3 - Imagen de Portada (Imagen 0):** La imagen con `sort_order = 0` se define automáticamente como la imagen de portada de la landing.
+* **RF4.4 - Galería de Momentos:** Las imágenes con `sort_order > 0` conforman el álbum o galería de la relación.
+* **RF4.5 - Gestión de Orden:** Funcionalidad de reordenamiento para definir qué imagen ocupa la posición de portada.
+
+### RF5: Invitaciones Interactivas
+
+* **RF5.1 - Invitaciones Independientes:** Creación de invitaciones con títulos y mensajes de respuesta ("Sí/No") personalizables.
+* **RF5.2 - Multimedia en Invitaciones:** Soporte para hasta 20 archivos multimedia, incluyendo GIFs.
+
+---
+
+## 2. Requerimientos No Funcionales (RNF)
+
+### RNF1: Arquitectura y Código
+
+* **RNF1.1 - Patrón de Diseño:** Implementación obligatoria de capas Service (Lógica de Negocio) y Repository (Acceso a Datos).
+* **RNF1.2 - Controladores Slim:** Los controladores solo deben orquestar la comunicación entre la solicitud y los servicios.
+* **RNF1.3 - Tipado Estricto:** Uso de TypeScript en el frontend y Type Hinting en PHP 8.3+.
+
+### RNF2: Persistencia y Datos
+
+* **RNF2.1 - Normalización (3NF):** La base de datos debe cumplir con la Tercera Forma Normal para evitar redundancias en Temas y Media.
+* **RNF2.2 - Tablas Pivot:** Uso de `landing_media` e `invitation_media` para gestionar la relación muchos a muchos con archivos multimedia.
+* **RNF2.3 - Integridad:** Uso de Soft Deletes para Landings, Invitaciones y Usuarios.
+
+### RNF3: Frontend y Experiencia de Usuario (UX)
+
+* **RNF3.1 - Stack Visual:** Uso de Vue 3 (Composition API), Inertia.js v2 y Tailwind CSS v4.
+* **RNF3.2 - Diseño Adaptativo:** Enfoque Mobile-First para garantizar la visualización de las landings en dispositivos móviles.
+
+---
+
+## 3. Criterios de Aceptación para Landings
+
+| Escenario | Resultado Esperado |
+| --- | --- |
+| **Carga de Álbum** | Al subir 5 fotos, la primera asignada con el índice 0 debe aparecer en el componente "Hero/Portada". |
+| **Cambio de Tema** | Al cambiar el tema, los nombres de la pareja y las fotos del álbum deben permanecer intactos. |
+| **Acceso Público** | La URL `/p/{slug}` debe cargar el tema personalizado, la biografía y la galería completa. |
+| **Validación Media** | El sistema debe rechazar archivos que superen los 10MB o el límite de 20 imágenes. |
+
+---
+
+**Versión:** 1.3
+**Última actualización:** 29 de enero de 2026
