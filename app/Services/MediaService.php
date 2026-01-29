@@ -61,8 +61,9 @@ class MediaService
             return false;
         }
 
-        if ($this->disk->exists($media->path)) {
-            $this->disk->delete($media->path);
+        $disk = $this->getDiskForMedia($media);
+        if ($disk->exists($media->path)) {
+            $disk->delete($media->path);
         }
 
         return $this->mediaRepository->delete($mediaId);
@@ -81,11 +82,28 @@ class MediaService
         }
 
         // Eliminar archivo del storage
-        if ($this->disk->exists($media->path)) {
-            $this->disk->delete($media->path);
+        $disk = $this->getDiskForMedia($media);
+        if ($disk->exists($media->path)) {
+            $disk->delete($media->path);
         }
 
         return $this->mediaRepository->delete($mediaId);
+    }
+
+    /**
+     * Determina el disco adecuado basándose en la URL del medio
+     */
+    protected function getDiskForMedia(Media $media): \Illuminate\Contracts\Filesystem\Filesystem
+    {
+        // Si la URL es absoluta y coincide con la URL de la nube, usar disco cloud
+        $cloudUrl = config('filesystems.disks.media_cloud.url');
+        if ($cloudUrl && str_starts_with($media->url, $cloudUrl)) {
+            return Storage::disk('media_cloud');
+        }
+        
+        // Si no, asumimos disco local 'media'
+        // Esto maneja archivos creados localmente que tienen URL relativa
+        return Storage::disk('media');
     }
 
     /**

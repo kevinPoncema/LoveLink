@@ -62,6 +62,25 @@ class Media extends Model
     }
 
     /**
+     * Accessor para la URL del medio.
+     * Asegura que las URLs relativas (almacenamiento local) incluyan el dominio actual.
+     */
+    public function getUrlAttribute($value)
+    {
+        // Si es una URL completa (ej. S3/Spaces), devolverla tal cual
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+
+        // Si es una ruta relativa (ej. /storage/media/...), prepender APP_URL
+        if ($value && str_starts_with($value, '/')) {
+            return rtrim(config('app.url'), '/') . $value;
+        }
+
+        return $value;
+    }
+
+    /**
      * Relación: Media puede ser usado como imagen de fondo de temas
      */
     public function themes(): \Illuminate\Database\Eloquent\Relations\HasMany
