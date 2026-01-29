@@ -60,7 +60,7 @@ const handleSectionClick = (route: string) => {
 };
 
 const handleCreateLanding = () => {
-    alert('Crear nueva landing - funcionalidad por implementar');
+    router.visit('/landings/create');
 };
 
 const handleUploadMedia = () => {

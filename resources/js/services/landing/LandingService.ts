@@ -1,4 +1,3 @@
-import type { ApiResponse } from '@/types/auth';
 import { apiClient } from '../ApiClient';
 
 // Tipos específicos para Landing
@@ -52,7 +51,7 @@ export class LandingService {
      * Obtener todas las landings del usuario
      */
     async getUserLandings(): Promise<Landing[]> {
-        const response = await apiClient.get<Landing[]>('/landings');
+        const response = await apiClient.get<Landing[]>('/api/landings');
         return response.data || [];
     }
 
@@ -60,7 +59,7 @@ export class LandingService {
      * Obtener una landing específica por ID
      */
     async getLanding(id: number): Promise<Landing> {
-        const response = await apiClient.get<Landing>(`/landings/${id}`);
+        const response = await apiClient.get<Landing>(`/api/landings/${id}`);
         if (!response.data) {
             throw new Error('Landing no encontrada');
         }
@@ -71,7 +70,7 @@ export class LandingService {
      * Obtener landing pública por slug (sin autenticación)
      */
     async getPublicLanding(slug: string): Promise<Landing> {
-        const response = await apiClient.get<Landing>(`/public/landing/${slug}`);
+        const response = await apiClient.get<Landing>(`/api/public/landing/${slug}`);
         if (!response.data) {
             throw new Error('Landing no encontrada');
         }
@@ -82,7 +81,7 @@ export class LandingService {
      * Crear nueva landing
      */
     async createLanding(data: CreateLandingData): Promise<Landing> {
-        const response = await apiClient.post<Landing>('/landings', data);
+        const response = await apiClient.post<Landing>('/api/landings', data);
         if (!response.data) {
             throw new Error('Error creando la landing');
         }
@@ -93,7 +92,7 @@ export class LandingService {
      * Actualizar landing existente
      */
     async updateLanding(id: number, data: UpdateLandingData): Promise<Landing> {
-        const response = await apiClient.put<Landing>(`/landings/${id}`, data);
+        const response = await apiClient.put<Landing>(`/api/landings/${id}`, data);
         if (!response.data) {
             throw new Error('Error actualizando la landing');
         }
@@ -104,14 +103,14 @@ export class LandingService {
      * Eliminar landing
      */
     async deleteLanding(id: number): Promise<void> {
-        await apiClient.delete(`/landings/${id}`);
+        await apiClient.delete(`/api/landings/${id}`);
     }
 
     /**
      * Vincular media a landing
      */
     async attachMedia(landingId: number, mediaId: number, sortOrder?: number): Promise<void> {
-        await apiClient.post(`/landings/${landingId}/media`, {
+        await apiClient.post(`/api/landings/${landingId}/media`, {
             media_id: mediaId,
             sort_order: sortOrder,
         });
@@ -121,14 +120,14 @@ export class LandingService {
      * Desvincular media de landing
      */
     async detachMedia(landingId: number, mediaId: number): Promise<void> {
-        await apiClient.delete(`/landings/${landingId}/media/${mediaId}`);
+        await apiClient.delete(`/api/landings/${landingId}/media/${mediaId}`);
     }
 
     /**
      * Reordenar media en landing
      */
     async reorderMedia(landingId: number, mediaOrder: { media_id: number; sort_order: number }[]): Promise<void> {
-        await apiClient.put(`/landings/${landingId}/media/reorder`, {
+        await apiClient.put(`/api/landings/${landingId}/media/reorder`, {
             media_order: mediaOrder,
         });
     }
