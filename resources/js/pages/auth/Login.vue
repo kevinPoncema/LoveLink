@@ -33,10 +33,10 @@ const togglePasswordVisibility = () => {
 <template>
     <div class="min-h-screen bg-stone-50 dark:bg-stone-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <Head title="Iniciar sesión" />
-        
+
         <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
             <h1 class="text-4xl font-serif text-stone-900 dark:text-stone-100 mb-2">
-                UsPage<span class="text-rose-500">.love</span>
+                LoveLink
             </h1>
             <p class="text-stone-500 dark:text-stone-400 font-sans">Accede a tu panel de control.</p>
         </div>
@@ -59,15 +59,15 @@ const togglePasswordVisibility = () => {
                         <label for="email" class="block text-sm font-medium text-stone-700 dark:text-stone-300">
                             Email
                         </label>
-                        <input 
+                        <input
                             id="email"
-                            v-model="form.email" 
-                            type="email" 
+                            v-model="form.email"
+                            type="email"
                             autocomplete="email"
-                            required 
+                            required
                             :disabled="form.processing"
                             placeholder="tu@email.com"
-                            class="mt-1 block w-full px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500" 
+                            class="mt-1 block w-full px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
                         />
                     </div>
 
@@ -77,15 +77,15 @@ const togglePasswordVisibility = () => {
                             Contraseña
                         </label>
                         <div class="relative">
-                            <input 
+                            <input
                                 id="password"
-                                v-model="form.password" 
+                                v-model="form.password"
                                 :type="showPassword ? 'text' : 'password'"
-                                autocomplete="current-password" 
-                                required 
+                                autocomplete="current-password"
+                                required
                                 :disabled="form.processing"
                                 placeholder="Tu contraseña"
-                                class="block w-full px-3 py-2 pr-10 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500" 
+                                class="block w-full px-3 py-2 pr-10 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
                             />
                             <button
                                 type="button"
@@ -102,12 +102,12 @@ const togglePasswordVisibility = () => {
 
                     <!-- Recordar sesión -->
                     <div class="flex items-center">
-                        <input 
+                        <input
                             id="remember"
-                            v-model="form.remember" 
-                            type="checkbox" 
+                            v-model="form.remember"
+                            type="checkbox"
                             :disabled="form.processing"
-                            class="h-4 w-4 text-rose-600 focus:ring-rose-500 border-stone-300 dark:border-stone-600 rounded disabled:cursor-not-allowed" 
+                            class="h-4 w-4 text-rose-600 focus:ring-rose-500 border-stone-300 dark:border-stone-600 rounded disabled:cursor-not-allowed"
                         />
                         <label for="remember" class="ml-2 block text-sm text-stone-700 dark:text-stone-300">
                             Recordar mi sesión
@@ -115,16 +115,16 @@ const togglePasswordVisibility = () => {
                     </div>
 
                     <!-- Botón de login -->
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         :disabled="form.processing"
                         class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                     >
-                        <svg 
-                            v-if="form.processing" 
-                            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            fill="none" 
+                        <svg
+                            v-if="form.processing"
+                            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
                             viewBox="0 0 24 24"
                         >
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -136,17 +136,17 @@ const togglePasswordVisibility = () => {
 
                 <!-- Links adicionales -->
                 <div class="mt-6 space-y-4 text-center">
-                    <Link 
+                    <Link
                         v-if="canResetPassword"
-                        href="/forgot-password" 
+                        href="/forgot-password"
                         class="text-xs text-stone-400 dark:text-stone-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors duration-200 block"
                     >
                         ¿Olvidaste tu contraseña?
                     </Link>
-                    
-                    <Link 
+
+                    <Link
                         v-if="canRegister"
-                        href="/register" 
+                        href="/register"
                         class="text-xs text-stone-400 dark:text-stone-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors duration-200 block"
                     >
                         ¿No tienes cuenta? Regístrate

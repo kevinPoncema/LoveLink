@@ -38,10 +38,10 @@ const togglePasswordConfirmationVisibility = () => {
 <template>
     <div class="min-h-screen bg-stone-50 dark:bg-stone-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <Head title="Crear Cuenta" />
-        
+
         <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
             <h1 class="text-4xl font-serif text-stone-900 dark:text-stone-100 mb-2">
-                UsPage<span class="text-rose-500">.love</span>
+                LoveLink
             </h1>
             <p class="text-stone-500 dark:text-stone-400 font-sans">Únete a nuestra comunidad del amor.</p>
         </div>
@@ -61,15 +61,15 @@ const togglePasswordConfirmationVisibility = () => {
                         <label for="name" class="block text-sm font-medium text-stone-700 dark:text-stone-300">
                             Nombre completo
                         </label>
-                        <input 
+                        <input
                             id="name"
-                            v-model="form.name" 
-                            type="text" 
+                            v-model="form.name"
+                            type="text"
                             autocomplete="name"
-                            required 
+                            required
                             :disabled="form.processing"
                             placeholder="Tu nombre completo"
-                            class="mt-1 block w-full px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500" 
+                            class="mt-1 block w-full px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
                         />
                     </div>
 
@@ -78,15 +78,15 @@ const togglePasswordConfirmationVisibility = () => {
                         <label for="email" class="block text-sm font-medium text-stone-700 dark:text-stone-300">
                             Email
                         </label>
-                        <input 
+                        <input
                             id="email"
-                            v-model="form.email" 
-                            type="email" 
+                            v-model="form.email"
+                            type="email"
                             autocomplete="email"
-                            required 
+                            required
                             :disabled="form.processing"
                             placeholder="tu@email.com"
-                            class="mt-1 block w-full px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500" 
+                            class="mt-1 block w-full px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
                         />
                     </div>
 
@@ -96,15 +96,15 @@ const togglePasswordConfirmationVisibility = () => {
                             Contraseña
                         </label>
                         <div class="relative">
-                            <input 
+                            <input
                                 id="password"
-                                v-model="form.password" 
+                                v-model="form.password"
                                 :type="showPassword ? 'text' : 'password'"
-                                autocomplete="new-password" 
-                                required 
+                                autocomplete="new-password"
+                                required
                                 :disabled="form.processing"
                                 placeholder="Mínimo 8 caracteres"
-                                class="block w-full px-3 py-2 pr-10 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500" 
+                                class="block w-full px-3 py-2 pr-10 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
                             />
                             <button
                                 type="button"
@@ -125,12 +125,12 @@ const togglePasswordConfirmationVisibility = () => {
                             Confirmar contraseña
                         </label>
                         <div class="relative">
-                            <input 
+                            <input
                                 id="password_confirmation"
-                                v-model="form.password_confirmation" 
+                                v-model="form.password_confirmation"
                                 :type="showPasswordConfirmation ? 'text' : 'password'"
-                                autocomplete="new-password" 
-                                required 
+                                autocomplete="new-password"
+                                required
                                 :disabled="form.processing"
                                 placeholder="Confirma tu contraseña"
                                 class="block w-full px-3 py-2 pr-10 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
@@ -149,16 +149,16 @@ const togglePasswordConfirmationVisibility = () => {
                     </div>
 
                     <!-- Botón de registro -->
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         :disabled="form.processing"
                         class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                     >
-                        <svg 
-                            v-if="form.processing" 
-                            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            fill="none" 
+                        <svg
+                            v-if="form.processing"
+                            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
                             viewBox="0 0 24 24"
                         >
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -170,9 +170,9 @@ const togglePasswordConfirmationVisibility = () => {
 
                 <!-- Link a login -->
                 <div class="mt-6 text-center">
-                    <Link 
+                    <Link
                         v-if="canLogin"
-                        href="/login" 
+                        href="/login"
                         class="text-xs text-stone-400 dark:text-stone-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors duration-200"
                     >
                         ¿Ya tienes cuenta? Inicia sesión

@@ -95,7 +95,7 @@ onMounted(() => {
         <header class="max-w-6xl mx-auto flex justify-between items-center mb-12">
             <div>
                 <Link href="/" class="text-2xl font-serif text-stone-800 dark:text-stone-200 hover:text-rose-600 dark:hover:text-rose-400 transition-colors">
-                    UsPage<span class="text-rose-500">.love</span>
+                    LoveLink
                 </Link>
                 <h2 class="text-lg text-stone-600 dark:text-stone-400 mt-1">Panel de Control</h2>
             </div>
@@ -173,9 +173,8 @@ onMounted(() => {
                     </div>
                     <h3 class="text-xl font-bold text-stone-800 dark:text-stone-200 mb-2">{{ section.name }}</h3>
                     <p class="text-stone-500 dark:text-stone-400 text-sm mb-6">{{ section.desc }}</p>
-                    <div class="flex items-end justify-between">
-                        <span class="text-4xl font-serif text-stone-900 dark:text-stone-100">{{ stats[section.count] }}</span>
-                        <span class="text-rose-600 dark:text-rose-400 font-medium text-sm group-hover:underline">Gestionar →</span>
+                    <div class="flex items-end justify-end">
+                        <span class="text-rose-600 dark:text-rose-400 font-medium text-sm group-hover:underline">Gestionar &rarr;</span>
                     </div>
                 </button>
             </div>
