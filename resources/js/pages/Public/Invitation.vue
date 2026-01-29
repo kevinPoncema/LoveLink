@@ -202,8 +202,14 @@ const yesButtonScale = computed(() => {
         </div>
 
         <!-- Footer -->
-        <footer class="fixed bottom-2 text-center w-full text-stone-400/80 text-xs pointer-events-none mix-blend-multiply z-30">
-            Hecho con ✨ en UsPage
+        <footer class="mt-8 mb-4 text-center w-full relative z-30">
+            <p class="text-stone-400 text-xs">Hecho con ✨ en <a href="/" class="hover:text-rose-500 transition-colors">UsPage</a></p>
+            <div class="mt-2 text-[10px] opacity-60">
+                <span class="text-stone-400">Desarrollado por</span>
+                <a href="https://kevinponcedev.xyz/" target="_blank" class="font-bold text-stone-500 hover:text-rose-600 ml-1 transition-colors">
+                    Kevin Ponce
+                </a>
+            </div>
         </footer>
     </div>
 </template>

@@ -32,6 +32,7 @@ const form = ref({
 const showMediaModal = ref(false);
 const localSelectedMedia = ref<number[]>([]);
 const previewMedia = ref<Media[]>([]);
+const draggedItemIndex = ref<number | null>(null);
 
 const isEditing = computed(() => !!props.id);
 
@@ -39,7 +40,7 @@ onMounted(async () => {
     // Load themes and gallery
     await Promise.all([
         loadThemes(),
-        loadMedia()
+        loadMedia(),
     ]);
 
     if (isEditing.value && props.id) {
@@ -48,19 +49,19 @@ onMounted(async () => {
             form.value = {
                 couple_names: landing.value.couple_names,
                 slug: landing.value.slug,
-                anniversary_date: landing.value.anniversary_date 
-                    ? (landing.value.anniversary_date.includes('T') ? landing.value.anniversary_date.split('T')[0] : landing.value.anniversary_date) 
+                anniversary_date: landing.value.anniversary_date
+                    ? (landing.value.anniversary_date.includes('T') ? landing.value.anniversary_date.split('T')[0] : landing.value.anniversary_date)
                     : '',
                 bio_text: landing.value.bio_text || '',
                 theme_id: landing.value.theme_id,
                 selected_media: landing.value.media ? landing.value.media.map((m: any) => m.id) : [],
             };
-            
+
             // Populate previews
             previewMedia.value = (landing.value.media || []) as unknown as Media[];
         }
     } else {
-         // Default theme selection
+        // Default theme selection
         if (systemThemes.value.length > 0) {
             form.value.theme_id = systemThemes.value[0].id;
         }
@@ -83,13 +84,39 @@ const toggleMediaSelection = (mediaId: number) => {
 const confirmMediaSelection = () => {
     form.value.selected_media = [...localSelectedMedia.value];
     // Sync previews from the gallery media we have loaded
-    previewMedia.value = galleryMedia.value.filter(m => form.value.selected_media.includes(m.id));
+    previewMedia.value = galleryMedia.value.filter(m => form.value.selected_media.includes(m.id))
+        .sort((a, b) => {
+            const indexA = form.value.selected_media.indexOf(a.id);
+            const indexB = form.value.selected_media.indexOf(b.id);
+            return indexA - indexB;
+        });
     showMediaModal.value = false;
 };
 
 const removeMedia = (mediaId: number) => {
     form.value.selected_media = form.value.selected_media.filter(id => id !== mediaId);
     previewMedia.value = previewMedia.value.filter(m => m.id !== mediaId);
+};
+
+// Drag and Drop Logic
+const onDragStart = (index: number) => {
+    draggedItemIndex.value = index;
+};
+
+const onDragOver = (e: DragEvent) => {
+    e.preventDefault();
+};
+
+const onDrop = (index: number) => {
+    if (draggedItemIndex.value === null || draggedItemIndex.value === index) return;
+
+    const items = [...previewMedia.value];
+    const draggedItem = items.splice(draggedItemIndex.value, 1)[0];
+    items.splice(index, 0, draggedItem);
+
+    previewMedia.value = items;
+    form.value.selected_media = items.map(item => item.id);
+    draggedItemIndex.value = null;
 };
 
 const handleSubmit = async () => {
@@ -117,6 +144,13 @@ const handleSubmit = async () => {
         for (const mid of toRemove) {
             await landingService.detachMedia(landingId, mid);
         }
+
+        // Handle Reorder
+        const mediaOrder = form.value.selected_media.map((id, index) => ({
+            media_id: id,
+            sort_order: index,
+        }));
+        await landingService.reorderMedia(landingId, mediaOrder);
 
         if (!landingError.value) {
             router.visit('/landings');
@@ -318,8 +352,16 @@ const handleSubmit = async () => {
                 </div>
                  
                  <div v-if="previewMedia.length > 0" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-                    <div v-for="(media, index) in previewMedia" :key="media.id" class="group relative aspect-square rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 shadow-sm">
-                        <img :src="media.url || media.path" class="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" />
+                    <div 
+                        v-for="(media, index) in previewMedia" 
+                        :key="media.id" 
+                        draggable="true"
+                        @dragstart="onDragStart(index)"
+                        @dragover="onDragOver"
+                        @drop="onDrop(index)"
+                        class="group relative aspect-square rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-900 shadow-sm cursor-move active:scale-95 transition-transform"
+                    >
+                        <img :src="media.url || media.path" class="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500 pointer-events-none" />
                         
                         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                              <button @click="removeMedia(media.id)" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-all transform hover:scale-110" title="Quitar">

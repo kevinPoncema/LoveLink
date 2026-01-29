@@ -64,7 +64,7 @@ const formatDate = (dateStr: string) => {
                     {{ landing.couple_names }}
                 </h1>
                 <p class="text-stone-500 tracking-[0.2em] uppercase text-xs md:text-sm font-bold bg-white/50 inline-block px-4 py-1 rounded-full backdrop-blur-sm">
-                    Desde el {{ formatDate(landing.anniversary_date) }}
+                    Desde el <span class="font-black text-stone-900 dark:text-stone-100">{{ formatDate(landing.anniversary_date) }}</span>
                 </p>
             </header>
 
@@ -116,6 +116,13 @@ const formatDate = (dateStr: string) => {
             <!-- Footer -->
              <footer class="pb-10 pt-10 text-center text-stone-400 text-sm">
                 <p>Hecho con ❤️ en <a href="/" class="hover:text-primary transition-colors">UsPage</a></p>
+                <div class="mt-4 pt-4 border-t border-stone-200/50 max-w-xs mx-auto">
+                    <p class="text-[10px] uppercase tracking-widest opacity-60 mb-1">Desarrollado por</p>
+                    <a href="https://kevinponcedev.xyz/" target="_blank" class="font-bold text-stone-600 dark:text-stone-300 hover:text-primary transition-all">
+                        Kevin Ponce
+                    </a>
+                    <p class="text-[9px] mt-1 opacity-40">kevinponcedev.xyz</p>
+                </div>
             </footer>
 
         </div>
