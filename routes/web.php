@@ -116,8 +116,23 @@ Route::get('/invitation/{slug}', function ($slug) {
 Route::get('/p/{slug}', function ($slug, \App\Services\LandingService $service) {
     try {
         $landing = $service->getLandingBySlugPublic($slug);
+        
         // Cargar relaciones necesarias para la vista pública
         $landing->load(['theme', 'media']); 
+        
+        // Prepare meta tags for SEO/Sharing
+        $heroImage = $landing->media->where('pivot.sort_order', 0)->first() 
+            ?? $landing->media->first();
+            
+        $meta = [
+            'title' => $landing->couple_names . ' - UsPage',
+            'description' => $landing->bio_text ?? 'La historia de ' . $landing->couple_names,
+            'image' => $heroImage ? ($heroImage->url ?? asset('storage/' . $heroImage->path)) : null,
+        ];
+
+        // Share meta with the View (for app.blade.php)
+        view()->share('meta', $meta);
+
         return Inertia::render('Public/Landing', [
             'landing' => $landing
         ]);

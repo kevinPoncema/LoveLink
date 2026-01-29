@@ -5,6 +5,27 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        {{-- Dynamic Meta Tags for SEO & Social Sharing --}}
+        @if(isset($meta))
+            <title>{{ $meta['title'] ?? config('app.name', 'UsPage') }}</title>
+            <meta name="description" content="{{ $meta['description'] ?? '' }}">
+            
+            <!-- Open Graph / Facebook -->
+            <meta property="og:type" content="website">
+            <meta property="og:url" content="{{ url()->current() }}">
+            <meta property="og:title" content="{{ $meta['title'] ?? config('app.name', 'UsPage') }}">
+            <meta property="og:description" content="{{ $meta['description'] ?? '' }}">
+            <meta property="og:image" content="{{ $meta['image'] ?? '' }}">
+
+            <!-- Twitter -->
+            <meta property="twitter:card" content="summary_large_image">
+            <meta property="twitter:title" content="{{ $meta['title'] ?? config('app.name', 'UsPage') }}">
+            <meta property="twitter:description" content="{{ $meta['description'] ?? '' }}">
+            <meta property="twitter:image" content="{{ $meta['image'] ?? '' }}">
+        @else
+            <title inertia>{{ config('app.name', 'UsPage') }}</title>
+        @endif
+
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {
