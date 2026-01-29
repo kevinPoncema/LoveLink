@@ -33,21 +33,19 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy composer files
-COPY composer.json composer.lock ./
-
-# Install PHP dependencies
-RUN composer install --no-interaction --no-progress --prefer-dist
-
 # Copy application files
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views && \
-    chown -R www-data:www-data /var/www/html
+# Install PHP dependencies
+RUN composer install --no-interaction --no-progress --prefer-dist --no-dev --optimize-autoloader
 
 # Install Node dependencies
 RUN npm install
+
+# Create necessary directories
+RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views database && \
+    touch database/database.sqlite && \
+    chown -R www-data:www-data /var/www/html
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html
