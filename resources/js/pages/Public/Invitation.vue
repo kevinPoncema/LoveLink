@@ -93,14 +93,14 @@ const yesButtonScale = computed(() => {
                         alt="Invitación"
                     />
                     <div v-else class="w-full h-full flex items-center justify-center bg-rose-100 text-rose-300">
-                        <span class="text-8xl">❤️</span>
+                        <span class="text-8xl">🎉</span>
                     </div>
                 </transition>
 
-                <!-- Floating Hearts Animation Background (CSS only) -->
+                <!-- Floating Confetti Animation Background (CSS only) -->
                 <div v-if="hasSaidYes" class="absolute inset-0 pointer-events-none z-10 flex items-center justify-center bg-white/30 backdrop-blur-sm">
                     <div class="text-center animate-bounce">
-                        <div class="text-9xl transform drop-shadow-lg">💖</div>
+                        <div class="text-9xl transform drop-shadow-lg">🎊</div>
                     </div>
                 </div>
             </div>
@@ -123,7 +123,7 @@ const yesButtonScale = computed(() => {
                             :style="{ transform: `scale(${yesButtonScale})` }"
                             class="bg-rose-600 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:bg-rose-700 hover:shadow-rose-500/30 transition-all active:scale-95 w-full max-w-[200px]"
                         >
-                            ¡SÍ! 😍
+                            ¡SÍ! 🥳
                         </button>
 
                         <button
@@ -144,7 +144,7 @@ const yesButtonScale = computed(() => {
                             {{ invitation.yes_message || '¡Sabía que dirías que sí!' }}
                         </p>
                         <div class="mt-8 text-6xl animate-pulse">
-                            💑
+                            ✨
                         </div>
                     </div>
                 </template>
@@ -153,7 +153,7 @@ const yesButtonScale = computed(() => {
 
         <!-- Footer -->
         <footer class="fixed bottom-4 text-center w-full text-stone-400 text-xs pointer-events-none">
-            Hecho con ❤️ en LoveLink
+            Hecho con ✨ en LoveLink
         </footer>
     </div>
 </template>

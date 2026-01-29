@@ -77,7 +77,7 @@ const getPublicUrl = (slug: string) => {
                     <div class="aspect-video bg-rose-100 dark:bg-rose-900/20 relative flex items-center justify-center overflow-hidden">
                         <img
                             v-if="invitation.media && invitation.media.length > 0"
-                            :src="invitation.media[0].path /* Assumed prop, actually accessing path might need full URL if backend sends path relative */" 
+                            :src="(invitation.media[0] as any).url || invitation.media[0].path"
                             class="w-full h-full object-cover"
                             alt="Preview"
                         />
@@ -94,13 +94,13 @@ const getPublicUrl = (slug: string) => {
                         <!-- It missed 'url'. I should probably update the type def or just assume 'url' exists dynamically. -->
                         <!-- I'll assume 'url' exists for now, I'll update the type definition later or cast as any if TS complains. -->
                         <!-- For now in template I assume 'url' exists. -->
-                        <img 
+                        <img
                             v-if="invitation.media && invitation.media.length > 0 && (invitation.media[0] as any).url"
                             :src="(invitation.media[0] as any).url"
                             class="w-full h-full object-cover"
                         />
                         <div v-else class="text-4xl">❤️</div>
-                        
+
                         <div class="absolute top-2 right-2 flex gap-1">
                              <span v-if="invitation.is_published" class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Publicada</span>
                              <span v-else class="bg-stone-500 text-white text-xs px-2 py-1 rounded-full">Borrador</span>
@@ -116,21 +116,21 @@ const getPublicUrl = (slug: string) => {
                         </p>
 
                         <div class="flex items-center justify-between gap-3">
-                             <a 
+                             <a
                                 :href="getPublicUrl(invitation.slug)"
                                 target="_blank"
                                 class="flex-1 text-center bg-stone-100 hover:bg-stone-200 dark:bg-stone-700 dark:hover:bg-stone-600 text-stone-700 dark:text-stone-200 py-2 rounded-lg text-sm font-medium transition-colors"
                              >
                                 Ver
                              </a>
-                             
+
                              <Link
                                 :href="`/invitations/${invitation.id}/edit`"
                                 class="flex-1 text-center bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/30 text-rose-600 dark:text-rose-400 py-2 rounded-lg text-sm font-medium transition-colors"
                              >
                                 Editar
                              </Link>
-                             
+
                              <button
                                 @click="handleDelete(invitation.id)"
                                 class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"

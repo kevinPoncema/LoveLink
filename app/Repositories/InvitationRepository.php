@@ -13,7 +13,6 @@ class InvitationRepository
     public function findByUser(int $userId): Collection
     {
         return Invitation::where('user_id', $userId)
-            ->withTrashed()
             ->with(['media'])
             ->orderBy('created_at', 'desc')
             ->get();
