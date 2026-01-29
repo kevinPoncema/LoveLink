@@ -15,8 +15,9 @@ class MediaService {
      * Obtener todos los archivos media del usuario
      */
     async getUserMedia(): Promise<Media[]> {
-        const response = await apiClient.get<Media[]>('/api/media');
-        return response.data || [];
+        const response = await apiClient.get<{ data: Media[], message?: string }>('/api/media');
+        console.log('MediaService - API response:', response);
+        return (response as any).data || [];
     }
 
     /**
@@ -30,12 +31,12 @@ class MediaService {
         formData.append('file', file);
 
         const response = await apiClient.postFormData<MediaUploadResponse>('/api/media', formData);
-        
-        if (!response.data?.media) {
+
+        if (!(response as any).media) {
             throw new Error('Error subiendo el archivo');
         }
-        
-        return response.data.media;
+
+        return (response as any).media;
     }
 
     /**
@@ -99,7 +100,7 @@ class MediaService {
      */
     validateFiles(files: File[]): { valid: boolean; errors: string[] } {
         const errors: string[] = [];
-        
+
         for (let i = 0; i < files.length; i++) {
             const validation = this.validateFile(files[i]);
             if (!validation.valid && validation.error) {

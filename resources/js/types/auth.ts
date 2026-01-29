@@ -54,18 +54,20 @@ export type DashboardStats = {
 export type Media = {
     id: number;
     filename: string;
-    original_filename: string;
+    original_filename?: string;
     path: string;
-    public_url: string;
+    public_url?: string; // Para frontend
+    url?: string; // Para API response
     mime_type: string;
-    size_bytes: number; // Cambiado de 'size' a 'size_bytes' para consistencia
+    size_bytes?: number; // Frontend
+    size?: number; // API response
     description?: string;
     user_id: number;
     created_at: string;
     updated_at: string;
 };
 
-// Theme types  
+// Theme types
 export type Theme = {
     id: number;
     name: string;

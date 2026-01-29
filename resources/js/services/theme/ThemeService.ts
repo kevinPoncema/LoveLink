@@ -41,7 +41,8 @@ export class ThemeService {
      */
     async getAvailableThemes(): Promise<Theme[]> {
         const response = await apiClient.get<{ themes: Theme[], message?: string }>('/api/themes');
-        return response.data?.themes || [];
+        console.log('ThemeService - API response:', response);
+        return (response as any).themes || [];
     }
 
     /**
@@ -49,10 +50,10 @@ export class ThemeService {
      */
     async getTheme(id: number): Promise<Theme> {
         const response = await apiClient.get<{ theme: Theme, message?: string }>(`/api/themes/${id}`);
-        if (!response.data?.theme) {
+        if (!(response as any).theme) {
             throw new Error('Tema no encontrado');
         }
-        return response.data.theme;
+        return (response as any).theme;
     }
 
     /**
@@ -60,42 +61,42 @@ export class ThemeService {
      */
     async createTheme(data: CreateThemeData): Promise<Theme> {
         const formData = new FormData();
-        
+
         // Agregar datos básicos
         formData.append('name', data.name);
         formData.append('primary_color', data.primary_color);
         formData.append('secondary_color', data.secondary_color);
         formData.append('bg_color', data.bg_color);
         formData.append('css_class', data.css_class);
-        
+
         if (data.description) {
             formData.append('description', data.description);
         }
-        
+
         // Agregar imagen si existe
         if (data.bg_image_file) {
             formData.append('bg_image_file', data.bg_image_file);
         }
 
         const response = await apiClient.postFormData<ThemeUploadResponse>('/api/themes', formData);
-        
-        if (!response.data?.theme) {
+
+        if (!(response as any).theme) {
             throw new Error('Error creando el tema');
         }
-        
-        return response.data.theme;
+
+        return (response as any).theme;
     }
 
     /**
      * Actualizar tema existente
      */
     async updateTheme(id: number, data: UpdateThemeData): Promise<Theme> {
-        let response: ApiResponse<ThemeUploadResponse>;
+        let response: any;
 
         if (data.bg_image_file) {
             // Si hay archivo, usar FormData
             const formData = new FormData();
-            
+
             Object.entries(data).forEach(([key, value]) => {
                 if (key === 'bg_image_file' && value instanceof File) {
                     formData.append(key, value);
@@ -110,11 +111,11 @@ export class ThemeService {
             response = await apiClient.put<ThemeUploadResponse>(`/api/themes/${id}`, data);
         }
 
-        if (!response.data?.theme) {
+        if (!response.theme) {
             throw new Error('Error actualizando el tema');
         }
 
-        return response.data.theme;
+        return response.theme;
     }
 
     /**

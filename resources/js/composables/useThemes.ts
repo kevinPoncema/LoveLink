@@ -8,12 +8,12 @@ export type UseThemesReturn = {
     currentTheme: Ref<Theme | null>;
     isLoading: Ref<boolean>;
     error: Ref<string | null>;
-    
+
     // Computed
     systemThemes: ComputedRef<Theme[]>;
     userThemes: ComputedRef<Theme[]>;
     canCreateMore: ComputedRef<boolean>;
-    
+
     // Métodos
     loadThemes: () => Promise<void>;
     getTheme: (id: number) => Promise<Theme>;
@@ -45,7 +45,7 @@ const canCreateMore = computed(() => {
 });
 
 export function useThemes(): UseThemesReturn {
-    
+
     /**
      * Cargar todos los temas disponibles
      */
@@ -53,9 +53,14 @@ export function useThemes(): UseThemesReturn {
         try {
             isLoading.value = true;
             error.value = null;
-            
-            themes.value = await themeService.getAvailableThemes();
-            
+
+            const loadedThemes = await themeService.getAvailableThemes();
+            themes.value = loadedThemes;
+
+            console.log('Themes loaded:', themes.value);
+            console.log('System themes:', systemThemes.value);
+            console.log('User themes:', userThemes.value);
+
         } catch (err: any) {
             error.value = err.message || 'Error cargando temas';
             console.error('Load themes error:', err);
@@ -71,17 +76,17 @@ export function useThemes(): UseThemesReturn {
         try {
             isLoading.value = true;
             error.value = null;
-            
+
             const theme = await themeService.getTheme(id);
-            
+
             // Actualizar en la lista local si existe
             const index = themes.value.findIndex(t => t.id === id);
             if (index !== -1) {
                 themes.value[index] = theme;
             }
-            
+
             return theme;
-            
+
         } catch (err: any) {
             error.value = err.message || 'Error cargando tema';
             throw err;
@@ -97,14 +102,14 @@ export function useThemes(): UseThemesReturn {
         try {
             isLoading.value = true;
             error.value = null;
-            
+
             const newTheme = await themeService.createTheme(data);
-            
+
             // Añadir a la lista local
             themes.value.push(newTheme);
-            
+
             return newTheme;
-            
+
         } catch (err: any) {
             error.value = err.message || 'Error creando tema';
             throw err;
@@ -120,22 +125,22 @@ export function useThemes(): UseThemesReturn {
         try {
             isLoading.value = true;
             error.value = null;
-            
+
             const updatedTheme = await themeService.updateTheme(id, data);
-            
+
             // Actualizar en la lista local
             const index = themes.value.findIndex(t => t.id === id);
             if (index !== -1) {
                 themes.value[index] = updatedTheme;
             }
-            
+
             // Actualizar tema actual si es el mismo
             if (currentTheme.value?.id === id) {
                 currentTheme.value = updatedTheme;
             }
-            
+
             return updatedTheme;
-            
+
         } catch (err: any) {
             error.value = err.message || 'Error actualizando tema';
             throw err;
@@ -151,17 +156,17 @@ export function useThemes(): UseThemesReturn {
         try {
             isLoading.value = true;
             error.value = null;
-            
+
             await themeService.deleteTheme(id);
-            
+
             // Remover de la lista local
             themes.value = themes.value.filter(t => t.id !== id);
-            
+
             // Limpiar tema actual si era el eliminado
             if (currentTheme.value?.id === id) {
                 currentTheme.value = null;
             }
-            
+
         } catch (err: any) {
             error.value = err.message || 'Error eliminando tema';
             throw err;
@@ -190,12 +195,12 @@ export function useThemes(): UseThemesReturn {
         currentTheme,
         isLoading,
         error,
-        
+
         // Computed
         systemThemes,
         userThemes,
         canCreateMore,
-        
+
         // Métodos
         loadThemes,
         getTheme,

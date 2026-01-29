@@ -1,4 +1,4 @@
-<script setup lang="ts">
+l <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useThemes } from '@/composables/useThemes';
@@ -8,18 +8,18 @@ import ColorPicker from '@/components/ui/ColorPicker.vue';
 import MediaUpload from '@/components/ui/MediaUpload.vue';
 
 // Composables
-const { 
-    themes, 
-    systemThemes, 
-    userThemes, 
-    isLoading, 
-    error, 
+const {
+    themes,
+    systemThemes,
+    userThemes,
+    isLoading,
+    error,
     canCreateMore,
-    loadThemes, 
-    createTheme, 
-    updateTheme, 
+    loadThemes,
+    createTheme,
+    updateTheme,
     deleteTheme,
-    clearError 
+    clearError
 } = useThemes();
 
 const { media, loadMedia } = useMedia();
@@ -68,7 +68,7 @@ const openCreateModal = () => {
         alert('Has alcanzado el límite de temas personalizados (10)');
         return;
     }
-    
+
     form.value = {
         name: '',
         description: '',
@@ -87,7 +87,7 @@ const openEditModal = (theme: Theme) => {
         alert('Los temas del sistema no se pueden editar');
         return;
     }
-    
+
     editingTheme.value = theme;
     form.value = {
         name: theme.name,
@@ -115,7 +115,7 @@ const closeModals = () => {
 const handleSubmit = async () => {
     try {
         clearError();
-        
+
         const formData = {
             name: form.value.name,
             description: form.value.description,
@@ -131,9 +131,9 @@ const handleSubmit = async () => {
         } else {
             await createTheme(formData);
         }
-        
+
         closeModals();
-        
+
     } catch (err: any) {
         console.error('Error saving theme:', err);
     }
@@ -144,7 +144,7 @@ const handleDelete = async (theme: Theme) => {
         alert('Los temas del sistema no se pueden eliminar');
         return;
     }
-    
+
     if (confirm(`¿Estás seguro de eliminar el tema "${theme.name}"?`)) {
         try {
             await deleteTheme(theme.id);
@@ -171,6 +171,11 @@ const selectBackgroundFromMedia = (selectedMedia: Media) => {
     showMediaSelector.value = false;
 };
 
+// Helper para crear URL de blob
+const createObjectURL = (file: File): string => {
+    return window.URL.createObjectURL(file);
+};
+
 // Lifecycle
 onMounted(async () => {
     await Promise.all([loadThemes(), loadMedia()]);
@@ -180,7 +185,7 @@ onMounted(async () => {
 <template>
     <div class="min-h-screen bg-stone-50 dark:bg-stone-900">
         <Head title="Gestionar Temas" />
-        
+
         <!-- Header -->
         <header class="bg-white dark:bg-stone-800 border-b border-stone-200 dark:border-stone-700">
             <div class="max-w-6xl mx-auto px-6 py-4">
@@ -193,15 +198,15 @@ onMounted(async () => {
                             Personaliza la apariencia de tus landing pages
                         </p>
                     </div>
-                    
+
                     <div class="flex items-center gap-4">
-                        <Link 
+                        <Link
                             href="/dashboard"
                             class="text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
                         >
                             ← Volver al Dashboard
                         </Link>
-                        
+
                         <button
                             @click="openCreateModal"
                             :disabled="!canCreateMore || isLoading"
@@ -246,21 +251,21 @@ onMounted(async () => {
                             <!-- Preview del tema -->
                             <div class="aspect-video p-4" :style="{ backgroundColor: theme.bg_color }">
                                 <div class="space-y-2">
-                                    <div 
+                                    <div
                                         class="w-full h-2 rounded"
                                         :style="{ backgroundColor: theme.primary_color }"
                                     ></div>
-                                    <div 
+                                    <div
                                         class="w-3/4 h-2 rounded"
                                         :style="{ backgroundColor: theme.secondary_color }"
                                     ></div>
-                                    <div 
+                                    <div
                                         class="w-1/2 h-2 rounded"
                                         :style="{ backgroundColor: theme.secondary_color, opacity: 0.7 }"
                                     ></div>
                                 </div>
                             </div>
-                            
+
                             <!-- Info del tema -->
                             <div class="p-4">
                                 <h3 class="font-medium text-stone-900 dark:text-stone-100">
@@ -289,7 +294,7 @@ onMounted(async () => {
                             {{ userThemes.length }}/10 temas
                         </span>
                     </div>
-                    
+
                     <!-- Lista de temas del usuario -->
                     <div v-if="userThemes.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         <div
@@ -298,9 +303,9 @@ onMounted(async () => {
                             class="bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 overflow-hidden hover:shadow-md transition-shadow group"
                         >
                             <!-- Preview del tema -->
-                            <div 
+                            <div
                                 class="aspect-video p-4 relative"
-                                :style="{ 
+                                :style="{
                                     backgroundColor: theme.bg_color,
                                     backgroundImage: theme.bg_image_url ? `url(${theme.bg_image_url})` : 'none',
                                     backgroundSize: 'cover',
@@ -308,20 +313,20 @@ onMounted(async () => {
                                 }"
                             >
                                 <div class="space-y-2">
-                                    <div 
+                                    <div
                                         class="w-full h-2 rounded"
                                         :style="{ backgroundColor: theme.primary_color }"
                                     ></div>
-                                    <div 
+                                    <div
                                         class="w-3/4 h-2 rounded"
                                         :style="{ backgroundColor: theme.secondary_color }"
                                     ></div>
-                                    <div 
+                                    <div
                                         class="w-1/2 h-2 rounded"
                                         :style="{ backgroundColor: theme.secondary_color, opacity: 0.7 }"
                                     ></div>
                                 </div>
-                                
+
                                 <!-- Botones de acción -->
                                 <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity space-x-1">
                                     <button
@@ -340,7 +345,7 @@ onMounted(async () => {
                                     </button>
                                 </div>
                             </div>
-                            
+
                             <!-- Info del tema -->
                             <div class="p-4">
                                 <h3 class="font-medium text-stone-900 dark:text-stone-100">
@@ -349,25 +354,25 @@ onMounted(async () => {
                                 <p v-if="theme.description" class="text-sm text-stone-600 dark:text-stone-400 mt-1 line-clamp-2">
                                     {{ theme.description }}
                                 </p>
-                                
+
                                 <!-- Paleta de colores -->
                                 <div class="flex items-center gap-1 mt-3">
-                                    <div 
+                                    <div
                                         class="w-4 h-4 rounded-full border border-stone-200 dark:border-stone-600"
                                         :style="{ backgroundColor: theme.primary_color }"
                                         :title="'Primario: ' + theme.primary_color"
                                     ></div>
-                                    <div 
+                                    <div
                                         class="w-4 h-4 rounded-full border border-stone-200 dark:border-stone-600"
                                         :style="{ backgroundColor: theme.secondary_color }"
                                         :title="'Secundario: ' + theme.secondary_color"
                                     ></div>
-                                    <div 
+                                    <div
                                         class="w-4 h-4 rounded-full border border-stone-200 dark:border-stone-600"
                                         :style="{ backgroundColor: theme.bg_color }"
                                         :title="'Fondo: ' + theme.bg_color"
                                     ></div>
-                                    
+
                                     <span class="ml-auto inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 text-xs rounded">
                                         Personalizado
                                     </span>
@@ -375,7 +380,7 @@ onMounted(async () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Empty state -->
                     <div v-else class="text-center py-12 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700">
                         <div class="text-4xl mb-4">🎨</div>
@@ -397,8 +402,8 @@ onMounted(async () => {
         </main>
 
         <!-- Modal: Crear/Editar Tema -->
-        <div 
-            v-if="showCreateModal || showEditModal" 
+        <div
+            v-if="showCreateModal || showEditModal"
             class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
             @click.self="closeModals"
         >
@@ -408,7 +413,7 @@ onMounted(async () => {
                         {{ showEditModal ? 'Editar Tema' : 'Crear Nuevo Tema' }}
                     </h2>
                 </div>
-                
+
                 <form @submit.prevent="handleSubmit" class="p-6 space-y-6">
                     <!-- Nombre y descripción -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -425,7 +430,7 @@ onMounted(async () => {
                                 class="w-full px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
                             />
                         </div>
-                        
+
                         <div>
                             <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
                                 Clase CSS
@@ -438,7 +443,7 @@ onMounted(async () => {
                             />
                         </div>
                     </div>
-                    
+
                     <div>
                         <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-2">
                             Descripción
@@ -457,12 +462,12 @@ onMounted(async () => {
                             v-model="form.primary_color"
                             label="Color Primario"
                         />
-                        
+
                         <ColorPicker
                             v-model="form.secondary_color"
                             label="Color Secundario"
                         />
-                        
+
                         <ColorPicker
                             v-model="form.bg_color"
                             label="Color de Fondo"
@@ -474,18 +479,18 @@ onMounted(async () => {
                         <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">
                             Imagen de Fondo
                         </label>
-                        
+
                         <!-- Imagen actual/seleccionada -->
                         <div v-if="selectedBackgroundMedia || form.bg_image_file" class="mb-4">
                             <div class="flex items-start gap-4 p-4 bg-stone-50 dark:bg-stone-900 rounded-xl">
                                 <img
-                                    :src="selectedBackgroundMedia?.public_url || (form.bg_image_file ? URL.createObjectURL(form.bg_image_file) : '')"
-                                    :alt="selectedBackgroundMedia?.original_filename || form.bg_image_file?.name"
+                                    :src="selectedBackgroundMedia?.public_url || selectedBackgroundMedia?.url || (form.bg_image_file ? createObjectURL(form.bg_image_file) : '')"
+                                    :alt="selectedBackgroundMedia?.original_filename || selectedBackgroundMedia?.filename || form.bg_image_file?.name"
                                     class="w-24 h-24 object-cover rounded-lg"
                                 />
                                 <div class="flex-1">
                                     <p class="font-medium text-stone-900 dark:text-stone-100">
-                                        {{ selectedBackgroundMedia?.original_filename || form.bg_image_file?.name }}
+                                        {{ selectedBackgroundMedia?.original_filename || selectedBackgroundMedia?.filename || form.bg_image_file?.name }}
                                     </p>
                                     <p class="text-sm text-stone-500 dark:text-stone-400">
                                         {{ selectedBackgroundMedia ? 'De tu galería' : 'Archivo nuevo' }}
@@ -500,7 +505,7 @@ onMounted(async () => {
                                 </button>
                             </div>
                         </div>
-                        
+
                         <!-- Opciones para seleccionar imagen -->
                         <div class="space-y-3">
                             <!-- Upload nueva -->
@@ -510,7 +515,7 @@ onMounted(async () => {
                                 :compact="true"
                                 :show-preview="false"
                             />
-                            
+
                             <!-- Seleccionar de galería -->
                             <button
                                 type="button"
@@ -527,25 +532,25 @@ onMounted(async () => {
                         <label class="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">
                             Vista previa
                         </label>
-                        <div 
+                        <div
                             class="aspect-video rounded-xl p-6"
-                            :style="{ 
+                            :style="{
                                 backgroundColor: form.bg_color,
-                                backgroundImage: selectedBackgroundMedia?.public_url ? `url(${selectedBackgroundMedia.public_url})` : 'none',
+                                backgroundImage: (selectedBackgroundMedia?.public_url || selectedBackgroundMedia?.url) ? `url(${selectedBackgroundMedia.public_url || selectedBackgroundMedia.url})` : 'none',
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center'
                             }"
                         >
                             <div class="space-y-3">
-                                <div 
+                                <div
                                     class="w-full h-4 rounded"
                                     :style="{ backgroundColor: form.primary_color }"
                                 ></div>
-                                <div 
+                                <div
                                     class="w-3/4 h-3 rounded"
                                     :style="{ backgroundColor: form.secondary_color }"
                                 ></div>
-                                <div 
+                                <div
                                     class="w-1/2 h-3 rounded"
                                     :style="{ backgroundColor: form.secondary_color, opacity: 0.7 }"
                                 ></div>
@@ -575,8 +580,8 @@ onMounted(async () => {
         </div>
 
         <!-- Modal: Selector de media -->
-        <div 
-            v-if="showMediaSelector" 
+        <div
+            v-if="showMediaSelector"
             class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
             @click.self="showMediaSelector = false"
         >
@@ -586,7 +591,7 @@ onMounted(async () => {
                         Seleccionar Imagen de Fondo
                     </h2>
                 </div>
-                
+
                 <div class="p-6">
                     <div v-if="backgroundImages.length === 0" class="text-center py-12">
                         <div class="text-4xl mb-4">📸</div>
@@ -594,7 +599,7 @@ onMounted(async () => {
                             No tienes imágenes en tu galería. Sube una imagen primero.
                         </p>
                     </div>
-                    
+
                     <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         <button
                             v-for="mediaItem in backgroundImages"
@@ -603,8 +608,8 @@ onMounted(async () => {
                             class="group aspect-square rounded-lg overflow-hidden hover:ring-2 hover:ring-rose-500 transition-all"
                         >
                             <img
-                                :src="mediaItem.public_url"
-                                :alt="mediaItem.original_filename"
+                                :src="mediaItem.public_url || mediaItem.url"
+                                :alt="mediaItem.original_filename || mediaItem.filename"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                         </button>
