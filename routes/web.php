@@ -93,14 +93,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Invitations/Form', ['id' => $id]);
     })->name('invitations.edit');
 
-    // TODO: Añadir más rutas protegidas aquí cuando se implementen las páginas
-    // Route::get('/landings', [LandingController::class, 'index'])->name('landings.index');
+    // Gestión de Landings
+    Route::get('/landings', function () {
+        return Inertia::render('Landings/Index');
+    })->name('landings.index');
+
+    Route::get('/landings/create', function () {
+        return Inertia::render('Landings/Form');
+    })->name('landings.create');
+
+    Route::get('/landings/{id}/edit', function ($id) {
+        return Inertia::render('Landings/Form', ['id' => $id]);
+    })->name('landings.edit');
 });
 
 // Ruta pública de invitación
 Route::get('/invitation/{slug}', function ($slug) {
     return Inertia::render('Public/Invitation', ['slug' => $slug]);
 })->name('invitations.show');
+
+// Ruta pública de landing
+Route::get('/p/{slug}', function ($slug, \App\Services\LandingService $service) {
+    try {
+        $landing = $service->getLandingBySlugPublic($slug);
+        // Cargar relaciones necesarias para la vista pública
+        $landing->load(['theme', 'media']); 
+        return Inertia::render('Public/Landing', [
+            'landing' => $landing
+        ]);
+    } catch (\Exception $e) {
+        abort(404);
+    }
+})->name('landings.public.show');
 
 // Ruta de test para debugging (sin autenticación requerida)
 Route::get('/test-auth-public', function () {
