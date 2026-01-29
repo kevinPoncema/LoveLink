@@ -345,7 +345,7 @@ onMounted(async () => {
                 </div>
 
                 <!-- Grid de archivos -->
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                     <div
                         v-for="item in filteredMedia"
                         :key="item.id"
@@ -385,13 +385,12 @@ onMounted(async () => {
                         <!-- Contenido del archivo -->
                         <div class="aspect-square relative">
                             <!-- Preview de imagen -->
-                            <img
+                            <div
                                 v-if="item.mime_type.startsWith('image/')"
-                                :src="item.url"
-                                :alt="item.filename"
-                                class="w-full h-full object-cover"
-                                loading="lazy"
-                            />
+                                class="w-full h-full bg-cover bg-center bg-no-repeat bg-stone-100 dark:bg-stone-700"
+                                :style="{ backgroundImage: `url('${item.url}')` }"
+                                :title="item.filename"
+                            ></div>
 
                             <!-- Preview de video -->
                             <video
