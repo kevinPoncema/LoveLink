@@ -98,8 +98,8 @@ const openEditModal = (theme: Theme) => {
         css_class: theme.css_class,
         bg_image_file: null,
     };
-    // Cargar la imagen de fondo desde la relación bg_image si existe
-    selectedBackgroundMedia.value = theme.bg_image || null;
+    // Cargar la imagen de fondo desde la relación background_image si existe
+    selectedBackgroundMedia.value = theme.background_image || null;
     showEditModal.value = true;
 };
 
@@ -169,7 +169,7 @@ const removeBackground = () => {
     selectedBackgroundMedia.value = null;
     // Si estamos editando, asegurarnos de que se quite la referencia
     if (editingTheme.value) {
-        editingTheme.value.bg_image = null;
+        editingTheme.value.background_image = null;
         editingTheme.value.bg_image_media_id = undefined;
     }
 };
@@ -271,7 +271,7 @@ onMounted(async () => {
                                 class="aspect-video p-4"
                                 :style="{
                                     backgroundColor: theme.bg_color,
-                                    backgroundImage: theme.bg_image?.url || theme.bg_image_url ? `url(${theme.bg_image?.url || theme.bg_image_url})` : 'none',
+                                    backgroundImage: theme.background_image?.url || theme.bg_image_url ? `url(${theme.background_image?.url || theme.bg_image_url})` : 'none',
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center'
                                 }"
@@ -333,7 +333,7 @@ onMounted(async () => {
                                 class="aspect-video p-4 relative"
                                 :style="{
                                     backgroundColor: theme.bg_color,
-                                    backgroundImage: theme.bg_image?.url || theme.bg_image_url ? `url(${theme.bg_image?.url || theme.bg_image_url})` : 'none',
+                                    backgroundImage: theme.background_image?.url || theme.bg_image_url ? `url(${theme.background_image?.url || theme.bg_image_url})` : 'none',
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center'
                                 }"
@@ -510,13 +510,13 @@ onMounted(async () => {
                         <div v-if="selectedBackgroundMedia || form.bg_image_file" class="mb-4">
                             <div class="flex items-start gap-4 p-4 bg-stone-50 dark:bg-stone-900 rounded-xl">
                                 <img
-                                    :src="selectedBackgroundMedia?.public_url || selectedBackgroundMedia?.url || (form.bg_image_file ? createObjectURL(form.bg_image_file) : '')"
-                                    :alt="selectedBackgroundMedia?.original_filename || selectedBackgroundMedia?.filename || form.bg_image_file?.name"
+                                    :src="selectedBackgroundMedia?.url || (form.bg_image_file ? createObjectURL(form.bg_image_file) : '')"
+                                    :alt="selectedBackgroundMedia?.filename || form.bg_image_file?.name"
                                     class="w-24 h-24 object-cover rounded-lg"
                                 />
                                 <div class="flex-1">
                                     <p class="font-medium text-stone-900 dark:text-stone-100">
-                                        {{ selectedBackgroundMedia?.original_filename || selectedBackgroundMedia?.filename || form.bg_image_file?.name }}
+                                        {{ selectedBackgroundMedia?.filename || form.bg_image_file?.name }}
                                     </p>
                                     <p class="text-sm text-stone-500 dark:text-stone-400">
                                         {{ selectedBackgroundMedia ? 'De tu galería' : 'Archivo nuevo' }}
@@ -564,8 +564,8 @@ onMounted(async () => {
                                 backgroundColor: form.bg_color,
                                 backgroundImage: form.bg_image_file
                                     ? `url(${createObjectURL(form.bg_image_file)})`
-                                    : (selectedBackgroundMedia?.url || selectedBackgroundMedia?.public_url
-                                        ? `url(${selectedBackgroundMedia.url || selectedBackgroundMedia.public_url})`
+                                    : (selectedBackgroundMedia?.url
+                                        ? `url(${selectedBackgroundMedia.url})`
                                         : 'none'),
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center'
@@ -638,8 +638,8 @@ onMounted(async () => {
                             class="group aspect-square rounded-lg overflow-hidden hover:ring-2 hover:ring-rose-500 transition-all"
                         >
                             <img
-                                :src="mediaItem.public_url || mediaItem.url"
-                                :alt="mediaItem.original_filename || mediaItem.filename"
+                                :src="mediaItem.url"
+                                :alt="mediaItem.filename"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                         </button>

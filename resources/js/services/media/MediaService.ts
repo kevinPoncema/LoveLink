@@ -31,11 +31,11 @@ class MediaService {
 
         const response = await apiClient.postFormData<MediaUploadResponse>('/api/media', formData);
 
-        if (!(response as any).media) {
+        if (!(response as any).data) {
             throw new Error('Error subiendo el archivo');
         }
 
-        return (response as any).media;
+        return (response as any).data;
     }
 
     /**
@@ -142,7 +142,7 @@ class MediaService {
      * Obtener URL pública del media
      */
     getPublicUrl(media: Media): string {
-        return media.public_url || `/storage/${media.path}`;
+        return media.url || `/storage/${media.path}`;
     }
 
     /**

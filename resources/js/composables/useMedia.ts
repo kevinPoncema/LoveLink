@@ -9,12 +9,12 @@ export type UseMediaReturn = {
     isUploading: Ref<boolean>;
     error: Ref<string | null>;
     uploadProgress: Ref<number>;
-    
+
     // Computed
     images: ComputedRef<Media[]>;
     totalSize: ComputedRef<number>;
     totalSizeFormatted: ComputedRef<string>;
-    
+
     // Métodos
     loadMedia: () => Promise<void>;
     uploadMedia: (file: File) => Promise<Media>;
@@ -38,7 +38,7 @@ const images = computed(() => {
 });
 
 const totalSize = computed(() => {
-    return media.value.reduce((total, m) => total + m.size_bytes, 0);
+    return media.value.reduce((total, m) => total + m.size, 0);
 });
 
 const totalSizeFormatted = computed(() => {
@@ -46,7 +46,7 @@ const totalSizeFormatted = computed(() => {
 });
 
 export function useMedia(): UseMediaReturn {
-    
+
     /**
      * Cargar toda la media del usuario
      */
@@ -54,9 +54,9 @@ export function useMedia(): UseMediaReturn {
         try {
             isLoading.value = true;
             error.value = null;
-            
+
             media.value = await mediaService.getUserMedia();
-            
+
         } catch (err: any) {
             error.value = err.message || 'Error cargando archivos';
             console.error('Load media error:', err);
@@ -73,16 +73,16 @@ export function useMedia(): UseMediaReturn {
             isUploading.value = true;
             uploadProgress.value = 0;
             error.value = null;
-            
+
             const newMedia = await mediaService.uploadMedia(file);
-            
+
             // Añadir a la lista local
             media.value.unshift(newMedia);
-            
+
             uploadProgress.value = 100;
-            
+
             return newMedia;
-            
+
         } catch (err: any) {
             error.value = err.message || 'Error subiendo archivo';
             throw err;
@@ -98,15 +98,15 @@ export function useMedia(): UseMediaReturn {
     const uploadMultipleMedia = async (files: FileList | File[]): Promise<Media[]> => {
         const fileArray = Array.from(files);
         const results: Media[] = [];
-        
+
         try {
             isUploading.value = true;
             error.value = null;
-            
+
             for (let i = 0; i < fileArray.length; i++) {
                 const file = fileArray[i];
                 uploadProgress.value = Math.round((i / fileArray.length) * 100);
-                
+
                 try {
                     const newMedia = await mediaService.uploadMedia(file);
                     media.value.unshift(newMedia);
@@ -116,15 +116,15 @@ export function useMedia(): UseMediaReturn {
                     // Continuar con los demás archivos
                 }
             }
-            
+
             uploadProgress.value = 100;
-            
+
             if (results.length < fileArray.length) {
                 error.value = `Se subieron ${results.length} de ${fileArray.length} archivos`;
             }
-            
+
             return results;
-            
+
         } catch (err: any) {
             error.value = err.message || 'Error subiendo archivos';
             throw err;
@@ -141,12 +141,12 @@ export function useMedia(): UseMediaReturn {
         try {
             isLoading.value = true;
             error.value = null;
-            
+
             await mediaService.deleteMedia(id);
-            
+
             // Remover de la lista local
             media.value = media.value.filter(m => m.id !== id);
-            
+
         } catch (err: any) {
             error.value = err.message || 'Error eliminando archivo';
             throw err;
@@ -185,12 +185,12 @@ export function useMedia(): UseMediaReturn {
         isUploading,
         error,
         uploadProgress,
-        
+
         // Computed
         images,
         totalSize,
         totalSizeFormatted,
-        
+
         // Métodos
         loadMedia,
         uploadMedia,

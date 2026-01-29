@@ -6,14 +6,14 @@ import type { Media } from '@/types/auth';
 import MediaUpload from '@/components/ui/MediaUpload.vue';
 
 // Composables
-const { 
-    media, 
-    uploadProgress, 
-    isUploading, 
-    error, 
-    loadMedia, 
-    deleteMedia, 
-    clearError 
+const {
+    media,
+    uploadProgress,
+    isUploading,
+    error,
+    loadMedia,
+    deleteMedia,
+    clearError
 } = useMedia();
 
 // Estado local
@@ -48,7 +48,7 @@ const filteredMedia = computed(() => {
     if (searchQuery.value.trim()) {
         const query = searchQuery.value.toLowerCase();
         result = result.filter(item =>
-            item.original_filename.toLowerCase().includes(query) ||
+            item.filename.toLowerCase().includes(query) ||
             (item.description && item.description.toLowerCase().includes(query))
         );
     }
@@ -63,7 +63,7 @@ const isAllSelected = computed(() => {
 const selectedCount = computed(() => selectedItems.value.size);
 
 const totalSize = computed(() => {
-    return media.value.reduce((total, item) => total + item.size_bytes, 0);
+    return media.value.reduce((total, item) => total + item.size, 0);
 });
 
 const formatFileSize = (bytes: number): string => {
@@ -117,13 +117,13 @@ const confirmDelete = (items?: Media[]) => {
     if (items) {
         itemsToDelete.value = items;
     } else {
-        itemsToDelete.value = filteredMedia.value.filter(item => 
+        itemsToDelete.value = filteredMedia.value.filter(item =>
             selectedItems.value.has(item.id)
         );
     }
-    
+
     if (itemsToDelete.value.length === 0) return;
-    
+
     showDeleteModal.value = true;
 };
 
@@ -137,6 +137,7 @@ const executeDelete = async () => {
         itemsToDelete.value = [];
     } catch (err: any) {
         console.error('Error deleting media:', err);
+        showDeleteModal.value = false;
     }
 };
 
@@ -170,7 +171,7 @@ onMounted(async () => {
 <template>
     <div class="min-h-screen bg-stone-50 dark:bg-stone-900">
         <Head title="Galería de Media" />
-        
+
         <!-- Header -->
         <header class="bg-white dark:bg-stone-800 border-b border-stone-200 dark:border-stone-700">
             <div class="max-w-7xl mx-auto px-6 py-4">
@@ -183,9 +184,9 @@ onMounted(async () => {
                             Gestiona tus archivos multimedia
                         </p>
                     </div>
-                    
+
                     <div class="flex items-center gap-4">
-                        <Link 
+                        <Link
                             href="/dashboard"
                             class="text-stone-600 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
                         >
@@ -193,7 +194,7 @@ onMounted(async () => {
                         </Link>
                     </div>
                 </div>
-                
+
                 <!-- Estadísticas -->
                 <div class="flex items-center gap-6 mt-4 text-sm text-stone-600 dark:text-stone-400">
                     <span>
@@ -229,11 +230,11 @@ onMounted(async () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Filtros y vista -->
                     <div class="flex items-center gap-3">
                         <!-- Filtro por tipo -->
-                        <select 
+                        <select
                             v-model="filterType"
                             class="px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl bg-white dark:bg-stone-700 text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-rose-500"
                         >
@@ -242,15 +243,15 @@ onMounted(async () => {
                             <option value="video">Videos</option>
                             <option value="document">Documentos</option>
                         </select>
-                        
+
                         <!-- Vista -->
                         <div class="flex border border-stone-200 dark:border-stone-600 rounded-lg">
                             <button
                                 @click="viewMode = 'grid'"
                                 :class="[
                                     'px-3 py-2 text-sm',
-                                    viewMode === 'grid' 
-                                        ? 'bg-rose-600 text-white' 
+                                    viewMode === 'grid'
+                                        ? 'bg-rose-600 text-white'
                                         : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-700'
                                 ]"
                             >
@@ -260,8 +261,8 @@ onMounted(async () => {
                                 @click="viewMode = 'list'"
                                 :class="[
                                     'px-3 py-2 text-sm border-l border-stone-200 dark:border-stone-600',
-                                    viewMode === 'list' 
-                                        ? 'bg-rose-600 text-white' 
+                                    viewMode === 'list'
+                                        ? 'bg-rose-600 text-white'
                                         : 'text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-700'
                                 ]"
                             >
@@ -270,7 +271,7 @@ onMounted(async () => {
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Acciones múltiples -->
                 <div v-if="selectedCount > 0" class="flex items-center justify-between mt-4 p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl">
                     <span class="text-sm text-rose-700 dark:text-rose-400">
@@ -308,7 +309,7 @@ onMounted(async () => {
                     <span class="text-blue-600 dark:text-blue-400 text-sm">{{ uploadProgress }}%</span>
                 </div>
                 <div class="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
-                    <div 
+                    <div
                         class="bg-blue-600 h-2 rounded-full transition-all duration-300"
                         :style="{ width: `${uploadProgress}%` }"
                     ></div>
@@ -325,7 +326,7 @@ onMounted(async () => {
                     Sube tus primeros archivos para empezar a construir tu galería
                 </p>
             </div>
-            
+
             <!-- Vista de cuadrícula -->
             <div v-else-if="viewMode === 'grid'" class="space-y-6">
                 <!-- Selector todo/nada -->
@@ -362,11 +363,11 @@ onMounted(async () => {
                                 class="w-4 h-4 text-rose-600 border-stone-300 rounded focus:ring-rose-500 bg-white/90"
                             />
                         </div>
-                        
+
                         <!-- Acciones -->
                         <div class="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
-                                @click="copyUrl(item.public_url)"
+                                @click="copyUrl(item.url)"
                                 class="w-8 h-8 bg-white/90 hover:bg-white text-stone-700 rounded-lg flex items-center justify-center text-xs mr-1"
                                 title="Copiar URL"
                             >
@@ -386,22 +387,22 @@ onMounted(async () => {
                             <!-- Preview de imagen -->
                             <img
                                 v-if="item.mime_type.startsWith('image/')"
-                                :src="item.public_url"
-                                :alt="item.original_filename"
+                                :src="item.url"
+                                :alt="item.filename"
                                 class="w-full h-full object-cover"
                                 loading="lazy"
                             />
-                            
+
                             <!-- Preview de video -->
                             <video
                                 v-else-if="item.mime_type.startsWith('video/')"
-                                :src="item.public_url"
+                                :src="item.url"
                                 class="w-full h-full object-cover"
                                 muted
                             ></video>
-                            
+
                             <!-- Icono para otros tipos -->
-                            <div 
+                            <div
                                 v-else
                                 class="w-full h-full flex items-center justify-center bg-stone-100 dark:bg-stone-700"
                             >
@@ -413,14 +414,14 @@ onMounted(async () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Info del archivo -->
                         <div class="p-3">
-                            <p class="text-xs font-medium text-stone-900 dark:text-stone-100 truncate" :title="item.original_filename">
-                                {{ item.original_filename }}
+                            <p class="text-xs font-medium text-stone-900 dark:text-stone-100 truncate" :title="item.filename">
+                                {{ item.filename }}
                             </p>
                             <p class="text-xs text-stone-500 dark:text-stone-400">
-                                {{ formatFileSize(item.size_bytes) }}
+                                {{ formatFileSize(item.size) }}
                             </p>
                         </div>
                     </div>
@@ -461,7 +462,7 @@ onMounted(async () => {
                         @change="toggleSelect(item.id)"
                         class="w-4 h-4 text-rose-600 border-stone-300 rounded focus:ring-rose-500"
                     />
-                    
+
                     <div class="flex-1 grid grid-cols-5 gap-4 items-center text-sm">
                         <!-- Archivo -->
                         <div class="flex items-center gap-3">
@@ -469,8 +470,8 @@ onMounted(async () => {
                             <div class="w-10 h-10 rounded-lg overflow-hidden bg-stone-100 dark:bg-stone-700 flex-shrink-0">
                                 <img
                                     v-if="item.mime_type.startsWith('image/')"
-                                    :src="item.public_url"
-                                    :alt="item.original_filename"
+                                    :src="item.url"
+                                    :alt="item.filename"
                                     class="w-full h-full object-cover"
                                     loading="lazy"
                                 />
@@ -478,36 +479,36 @@ onMounted(async () => {
                                     {{ getFileIcon(item.mime_type) }}
                                 </div>
                             </div>
-                            
+
                             <div class="min-w-0">
-                                <p class="font-medium text-stone-900 dark:text-stone-100 truncate" :title="item.original_filename">
-                                    {{ item.original_filename }}
+                                <p class="font-medium text-stone-900 dark:text-stone-100 truncate" :title="item.filename">
+                                    {{ item.filename }}
                                 </p>
                                 <p v-if="item.description" class="text-stone-500 dark:text-stone-400 text-xs truncate">
                                     {{ item.description }}
                                 </p>
                             </div>
                         </div>
-                        
+
                         <!-- Tipo -->
                         <div class="text-stone-600 dark:text-stone-400 font-mono text-xs">
                             {{ item.mime_type }}
                         </div>
-                        
+
                         <!-- Tamaño -->
                         <div class="text-stone-600 dark:text-stone-400">
-                            {{ formatFileSize(item.size_bytes) }}
+                            {{ formatFileSize(item.size) }}
                         </div>
-                        
+
                         <!-- Fecha -->
                         <div class="text-stone-600 dark:text-stone-400">
                             {{ formatDate(item.created_at) }}
                         </div>
-                        
+
                         <!-- Acciones -->
                         <div class="flex items-center justify-end gap-1">
                             <button
-                                @click="copyUrl(item.public_url)"
+                                @click="copyUrl(item.url)"
                                 class="p-2 text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200"
                                 title="Copiar URL"
                             >
@@ -544,8 +545,8 @@ onMounted(async () => {
         </main>
 
         <!-- Modal: Confirmar eliminación -->
-        <div 
-            v-if="showDeleteModal" 
+        <div
+            v-if="showDeleteModal"
             class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
             @click.self="cancelDelete"
         >
@@ -554,15 +555,15 @@ onMounted(async () => {
                     <h2 class="text-xl font-bold text-stone-900 dark:text-stone-100 mb-4">
                         Confirmar eliminación
                     </h2>
-                    
+
                     <p class="text-stone-600 dark:text-stone-400 mb-6">
-                        ¿Estás seguro de eliminar 
+                        ¿Estás seguro de eliminar
                         <strong class="text-stone-900 dark:text-stone-100">
-                            {{ itemsToDelete.length === 1 ? itemsToDelete[0].original_filename : `${itemsToDelete.length} archivos` }}
-                        </strong>? 
+                            {{ itemsToDelete.length === 1 ? itemsToDelete[0].filename : `${itemsToDelete.length} archivos` }}
+                        </strong>?
                         Esta acción no se puede deshacer.
                     </p>
-                    
+
                     <div class="flex justify-end gap-3">
                         <button
                             @click="cancelDelete"
