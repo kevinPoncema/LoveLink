@@ -7,23 +7,23 @@
 
         {{-- Dynamic Meta Tags for SEO & Social Sharing --}}
         @if(isset($meta))
-            <title>{{ $meta['title'] ?? config('app.name', 'UsPage') }}</title>
+            <title>{{ $meta['title'] ?? config('app.name', 'LoveLink') }}</title>
             <meta name="description" content="{{ $meta['description'] ?? '' }}">
             
             <!-- Open Graph / Facebook -->
             <meta property="og:type" content="website">
             <meta property="og:url" content="{{ url()->current() }}">
-            <meta property="og:title" content="{{ $meta['title'] ?? config('app.name', 'UsPage') }}">
+            <meta property="og:title" content="{{ $meta['title'] ?? config('app.name', 'LoveLink') }}">
             <meta property="og:description" content="{{ $meta['description'] ?? '' }}">
             <meta property="og:image" content="{{ $meta['image'] ?? '' }}">
 
             <!-- Twitter -->
             <meta property="twitter:card" content="summary_large_image">
-            <meta property="twitter:title" content="{{ $meta['title'] ?? config('app.name', 'UsPage') }}">
+            <meta property="twitter:title" content="{{ $meta['title'] ?? config('app.name', 'LoveLink') }}">
             <meta property="twitter:description" content="{{ $meta['description'] ?? '' }}">
             <meta property="twitter:image" content="{{ $meta['image'] ?? '' }}">
         @else
-            <title inertia>{{ config('app.name', 'UsPage') }}</title>
+            <title inertia>{{ config('app.name', 'LoveLink') }}</title>
         @endif
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}

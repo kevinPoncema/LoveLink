@@ -45,7 +45,7 @@ const formatDate = (dateStr: string) => {
 <template>
     <div class="landing-page-root min-h-screen font-sans" :style="themeStyles">
         <Head>
-            <title>{{ landing.couple_names }} - UsPage</title>
+            <title>{{ landing.couple_names }} - LoveLink</title>
             <meta name="description" :content="landing.bio_text || `La historia de ${landing.couple_names}`" />
             <!-- Open Graph Tags (Dynamic meta provided by Inertia/SSR if enabled, otherwise helpful for some clients) -->
             <meta property="og:title" :content="`${landing.couple_names} - Nuestra Historia`" />
@@ -115,7 +115,7 @@ const formatDate = (dateStr: string) => {
             
             <!-- Footer -->
              <footer class="pb-12 pt-16 text-center text-stone-500 text-sm">
-                <p>Hecho con ❤️ en <a href="/" class="hover:text-primary transition-colors font-medium">UsPage</a></p>
+                <p>Hecho con ❤️ en <a href="/" class="hover:text-primary transition-colors font-medium">LoveLink</a></p>
                 <div class="mt-8 pt-6 border-t border-stone-200/50 max-w-sm mx-auto">
                     <p class="text-xs uppercase tracking-[0.2em] text-stone-400 mb-2">Desarrollado por</p>
                     <a href="https://kevinponcedev.xyz/" target="_blank" class="text-xl font-black text-stone-800 dark:text-stone-200 hover:text-primary transition-all hover:scale-105 inline-block">

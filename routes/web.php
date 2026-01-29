@@ -125,7 +125,7 @@ Route::get('/p/{slug}', function ($slug, \App\Services\LandingService $service) 
             ?? $landing->media->first();
             
         $meta = [
-            'title' => $landing->couple_names . ' - UsPage',
+            'title' => $landing->couple_names . ' - LoveLink',
             'description' => $landing->bio_text ?? 'La historia de ' . $landing->couple_names,
             'image' => $heroImage ? ($heroImage->url ?? asset('storage/' . $heroImage->path)) : null,
         ];

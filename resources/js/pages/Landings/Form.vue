@@ -239,7 +239,7 @@ const handleSubmit = async () => {
                         <label class="text-sm font-medium text-stone-700 dark:text-stone-300">Slug (URL personalizada)</label>
                         <div class="flex items-center">
                             <span class="bg-stone-100 dark:bg-stone-800 border border-r-0 border-stone-200 dark:border-stone-600 rounded-l-xl px-3 py-3 text-stone-500 dark:text-stone-400 text-sm">
-                                uspage.love/p/
+                                lovelink.love/p/
                             </span>
                             <input
                                 v-model="form.slug"
