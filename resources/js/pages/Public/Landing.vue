@@ -114,14 +114,14 @@ const formatDate = (dateStr: string) => {
             </section>
             
             <!-- Footer -->
-             <footer class="pb-10 pt-10 text-center text-stone-400 text-sm">
-                <p>Hecho con ❤️ en <a href="/" class="hover:text-primary transition-colors">UsPage</a></p>
-                <div class="mt-4 pt-4 border-t border-stone-200/50 max-w-xs mx-auto">
-                    <p class="text-[10px] uppercase tracking-widest opacity-60 mb-1">Desarrollado por</p>
-                    <a href="https://kevinponcedev.xyz/" target="_blank" class="font-bold text-stone-600 dark:text-stone-300 hover:text-primary transition-all">
+             <footer class="pb-12 pt-16 text-center text-stone-500 text-sm">
+                <p>Hecho con ❤️ en <a href="/" class="hover:text-primary transition-colors font-medium">UsPage</a></p>
+                <div class="mt-8 pt-6 border-t border-stone-200/50 max-w-sm mx-auto">
+                    <p class="text-xs uppercase tracking-[0.2em] text-stone-400 mb-2">Desarrollado por</p>
+                    <a href="https://kevinponcedev.xyz/" target="_blank" class="text-xl font-black text-stone-800 dark:text-stone-200 hover:text-primary transition-all hover:scale-105 inline-block">
                         Kevin Ponce
                     </a>
-                    <p class="text-[9px] mt-1 opacity-40">kevinponcedev.xyz</p>
+                    <p class="text-xs mt-2 text-stone-400 font-medium">kevinponcedev.xyz</p>
                 </div>
             </footer>
 
