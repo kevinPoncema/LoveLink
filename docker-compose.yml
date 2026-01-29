@@ -8,12 +8,10 @@ services:
     container_name: lovelink-app
     restart: unless-stopped
     working_dir: /var/www/html
-    ports:
-      - "8000:8000"
-      - "5173:5173"
+    network_mode: host
     environment:
       - DB_CONNECTION=mysql
-      - DB_HOST=mariadb
+      - DB_HOST=127.0.0.1
       - DB_PORT=3306
       - DB_DATABASE=lovelink
       - DB_USERNAME=lovelink
@@ -24,15 +22,15 @@ services:
       - .:/var/www/html
       - ./storage:/var/www/html/storage
     depends_on:
-      - mariadb
-    networks:
-      - lovelink-network
-    command: sh -c "php artisan key:generate --force && php artisan migrate --force && npm run dev & php artisan serve --host=0.0.0.0 --port=8000"
+      mariadb:
+        condition: service_healthy
+    command: sh -c "sleep 5 && php artisan key:generate --force && php artisan migrate --force && npm run dev & php artisan serve --host=0.0.0.0 --port=8000"
 
   mariadb:
     image: mariadb:11
     container_name: lovelink-mariadb
     restart: unless-stopped
+    network_mode: host
     environment:
       - MYSQL_ROOT_PASSWORD=root123
       - MYSQL_DATABASE=lovelink
@@ -40,15 +38,12 @@ services:
       - MYSQL_PASSWORD=lovelink123
     volumes:
       - mariadb-data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - lovelink-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mariadb-data:
-
-networks:
-  lovelink-network:
-    driver: bridge
 
