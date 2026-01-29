@@ -80,10 +80,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
     })->name('test.auth');
 
+    // Gestión de Invitaciones
+    Route::get('/invitations', function () {
+        return Inertia::render('Invitations/Index');
+    })->name('invitations.index');
+
+    Route::get('/invitations/create', function () {
+        return Inertia::render('Invitations/Form');
+    })->name('invitations.create');
+
+    Route::get('/invitations/{id}/edit', function ($id) {
+        return Inertia::render('Invitations/Form', ['id' => $id]);
+    })->name('invitations.edit');
+
     // TODO: Añadir más rutas protegidas aquí cuando se implementen las páginas
     // Route::get('/landings', [LandingController::class, 'index'])->name('landings.index');
-    // Route::get('/invitations', [InvitationController::class, 'index'])->name('invitations.index');
 });
+
+// Ruta pública de invitación
+Route::get('/invitation/{slug}', function ($slug) {
+    return Inertia::render('Public/Invitation', ['slug' => $slug]);
+})->name('invitations.show');
 
 // Ruta de test para debugging (sin autenticación requerida)
 Route::get('/test-auth-public', function () {
