@@ -34,6 +34,7 @@ class UpdateInvitationRequest extends FormRequest
             'no_messages' => 'sometimes|array',
             'no_messages.*' => 'string|max:100',
             'is_published' => 'sometimes|boolean',
+            'theme_id' => 'nullable|exists:themes,id',
         ];
     }
 

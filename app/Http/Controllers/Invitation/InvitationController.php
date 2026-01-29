@@ -50,7 +50,7 @@ class InvitationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $invitation->load(['media']),
+                'data' => $invitation->load(['media', 'theme']),
                 'message' => 'Invitation creada exitosamente.',
             ], 201);
         } catch (\InvalidArgumentException $e) {
@@ -100,7 +100,7 @@ class InvitationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $invitation->load(['media', 'user:id,name']),
+                'data' => $invitation->load(['media', 'user:id,name', 'theme']),
                 'message' => 'Invitation obtenida exitosamente.',
             ]);
         } catch (\Exception $e) {
@@ -132,7 +132,7 @@ class InvitationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $invitation->load(['media']),
+                'data' => $invitation->load(['media', 'theme']),
                 'message' => 'Invitation actualizada exitosamente.',
             ]);
         } catch (ModelNotFoundException $e) {

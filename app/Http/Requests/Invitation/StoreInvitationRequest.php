@@ -25,6 +25,7 @@ class StoreInvitationRequest extends FormRequest
             'yes_message' => 'nullable|string|max:100',
             'no_messages' => 'nullable|array',
             'no_messages.*' => 'string|max:100',
+            'theme_id' => 'nullable|exists:themes,id',
         ];
     }
 

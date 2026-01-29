@@ -17,6 +17,7 @@ class Invitation extends Model
      */
     protected $fillable = [
         'user_id',
+        'theme_id',
         'slug',
         'title',
         'yes_message',
@@ -54,6 +55,14 @@ class Invitation extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relación: Una invitación pertenece a un tema (opcional)
+     */
+    public function theme(): BelongsTo
+    {
+        return $this->belongsTo(Theme::class);
     }
 
     /**
