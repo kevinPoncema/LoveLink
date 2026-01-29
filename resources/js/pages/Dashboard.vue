@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
 import { Link, Head, router } from '@inertiajs/vue3';
+import { ref, computed, onMounted } from 'vue';
 import { useAuth } from '@/composables/useAuth';
 import { useDashboard } from '@/composables/useDashboard';
 
 // Composables
-const { user, logout } = useAuth();
-const { stats, isLoading, error } = useDashboard();
+const { user } = useAuth();
+const { isLoading, error } = useDashboard();
 
 // Theme toggle functionality
 const isDark = ref(false);
@@ -64,11 +64,11 @@ const handleCreateLanding = () => {
 };
 
 const handleUploadMedia = () => {
-    alert('Subir fotos - funcionalidad por implementar');
+    router.visit('/media');
 };
 
 const handleLogout = async () => {
-    await logout();
+    router.post('/logout');
 };
 
 const toggleTheme = () => {
@@ -109,8 +109,8 @@ onMounted(() => {
                     <span class="text-lg">{{ isDark ? '☀️' : '🌙' }}</span>
                 </button>
 
-                <span class="text-sm text-stone-500 dark:text-stone-400">
-                    Hola, {{ userName }}
+                <span class="text-sm font-medium text-stone-700 dark:text-stone-200">
+                    {{ userName }}
                 </span>
                 
                 <!-- Menú de usuario -->
