@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { dashboard, login, register } from '@/routes';
+import { Heart } from 'lucide-vue-next';
 
 withDefaults(
     defineProps<{
@@ -13,142 +13,148 @@ withDefaults(
 </script>
 
 <template>
-    <Head title="Welcome">
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-    </Head>
-    <div
-        class="flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] lg:justify-center lg:p-8 dark:bg-[#0a0a0a]"
-    >
-        <header
-            class="mb-6 w-full max-w-[335px] text-sm not-has-[nav]:hidden lg:max-w-4xl"
-        >
-            <nav class="flex items-center justify-end gap-4">
-                <Link
-                    v-if="$page.props.auth.user"
-                    :href="dashboard()"
-                    class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                >
-                    Dashboard
-                </Link>
-                <template v-else>
+    <Head title="LoveLink - Crea tu historia de amor" />
+    
+    <div class="min-h-screen bg-linear-to-br from-rose-50 via-pink-50 to-purple-50 dark:from-stone-900 dark:via-rose-950 dark:to-purple-950">
+        <!-- Header -->
+        <header class="w-full py-6 px-4 md:px-8">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <Heart class="size-8 text-rose-600 dark:text-rose-400 fill-rose-600 dark:fill-rose-400" />
+                    <h1 class="text-2xl font-black text-stone-900 dark:text-stone-100">LoveLink</h1>
+                </div>
+                
+                <nav class="flex items-center gap-4">
                     <Link
-                        :href="login()"
-                        class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
+                        v-if="$page.props.auth.user"
+                        href="/dashboard"
+                        class="px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                     >
-                        Log in
+                        Dashboard
                     </Link>
+                    <template v-else>
+                        <Link
+                            href="/login"
+                            class="px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                        >
+                            Iniciar Sesión
+                        </Link>
+                        <Link
+                            v-if="canRegister"
+                            href="/register"
+                            class="px-6 py-2 text-sm font-medium bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-colors shadow-lg hover:shadow-xl"
+                        >
+                            Registrarse
+                        </Link>
+                    </template>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <main class="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-24">
+            <div class="text-center space-y-8">
+                <!-- Título Principal -->
+                <div class="space-y-4 animate-fade-in-down">
+                    <h2 class="text-5xl md:text-7xl font-black text-stone-900 dark:text-stone-100 leading-tight">
+                        Tu Historia de Amor
+                        <span class="block text-transparent bg-clip-text bg-linear-to-r from-rose-600 to-pink-600 dark:from-rose-400 dark:to-pink-400">
+                            Merece su Propio Espacio
+                        </span>
+                    </h2>
+                    <p class="text-xl md:text-2xl text-stone-600 dark:text-stone-400 max-w-3xl mx-auto">
+                        Crea landing pages personalizadas e invitaciones únicas para compartir los momentos más especiales con tu pareja
+                    </p>
+                </div>
+
+                <!-- CTA Principal -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+                    <Link
+                        href="/login"
+                        class="group relative px-12 py-6 bg-linear-to-r from-rose-600 to-pink-600 text-white text-xl font-black rounded-2xl shadow-2xl hover:shadow-rose-500/50 transform hover:scale-105 transition-all duration-300 overflow-hidden"
+                    >
+                        <span class="relative z-10 flex items-center gap-3">
+                            <Heart class="size-6 fill-white" />
+                            Iniciar Sesión
+                        </span>
+                        <div class="absolute inset-0 bg-linear-to-r from-pink-600 to-rose-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </Link>
+                    
                     <Link
                         v-if="canRegister"
-                        :href="register()"
-                        class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+                        href="/register"
+                        class="px-12 py-6 border-2 border-rose-600 dark:border-rose-400 text-rose-600 dark:text-rose-400 text-xl font-bold rounded-2xl hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all duration-300"
                     >
-                        Register
+                        Crear Cuenta Gratis
                     </Link>
-                </template>
-            </nav>
-        </header>
-        <div
-            class="flex w-full items-center justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0"
-        >
-            <main
-                class="flex w-full max-w-[335px] flex-col-reverse overflow-hidden rounded-lg lg:max-w-4xl lg:flex-row"
-            >
-                <div
-                    class="flex-1 rounded-br-lg rounded-bl-lg bg-white p-6 pb-12 text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] lg:rounded-tl-lg lg:rounded-br-none lg:p-20 dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]"
-                >
-                    <h1 class="mb-1 font-medium">Let's get started</h1>
-                    <p class="mb-2 text-[#706f6c] dark:text-[#A1A09A]">
-                        Laravel has an incredibly rich ecosystem. <br />We
-                        suggest starting with the following.
-                    </p>
-                    <ul class="mb-4 flex flex-col lg:mb-6">
-                        <li
-                            class="relative flex items-center gap-4 py-2 before:absolute before:top-1/2 before:bottom-0 before:left-[0.4rem] before:border-l before:border-[#e3e3e0] dark:before:border-[#3E3E3A]"
-                        >
-                            <span
-                                class="relative bg-white py-1 dark:bg-[#161615]"
-                            >
-                                <span
-                                    class="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-[#e3e3e0] bg-[#FDFDFC] shadow-[0px_0px_1px_0px_rgba(0,0,0,0.03),0px_1px_2px_0px_rgba(0,0,0,0.06)] dark:border-[#3E3E3A] dark:bg-[#161615]"
-                                >
-                                    <span
-                                        class="h-1.5 w-1.5 rounded-full bg-[#dbdbd7] dark:bg-[#3E3E3A]"
-                                    />
-                                </span>
-                            </span>
-                            <span>
-                                Read the
-                                <a
-                                    href="https://laravel.com/docs"
-                                    target="_blank"
-                                    class="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
-                                >
-                                    <span>Documentation</span>
-                                    <svg
-                                        width="10"
-                                        height="11"
-                                        viewBox="0 0 10 11"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        class="h-2.5 w-2.5"
-                                    >
-                                        <path
-                                            d="M7.70833 6.95834V2.79167H3.54167M2.5 8L7.5 3.00001"
-                                            stroke="currentColor"
-                                            stroke-linecap="square"
-                                        />
-                                    </svg>
-                                </a>
-                            </span>
-                        </li>
-                        <li
-                            class="relative flex items-center gap-4 py-2 before:absolute before:top-0 before:bottom-1/2 before:left-[0.4rem] before:border-l before:border-[#e3e3e0] dark:before:border-[#3E3E3A]"
-                        >
-                            <span
-                                class="relative bg-white py-1 dark:bg-[#161615]"
-                            >
-                                <span
-                                    class="flex h-3.5 w-3.5 items-center justify-center rounded-full border border-[#e3e3e0] bg-[#FDFDFC] shadow-[0px_0px_1px_0px_rgba(0,0,0,0.03),0px_1px_2px_0px_rgba(0,0,0,0.06)] dark:border-[#3E3E3A] dark:bg-[#161615]"
-                                >
-                                    <span
-                                        class="h-1.5 w-1.5 rounded-full bg-[#dbdbd7] dark:bg-[#3E3E3A]"
-                                    />
-                                </span>
-                            </span>
-                            <span>
-                                Watch video tutorials at
-                                <a
-                                    href="https://laracasts.com"
-                                    target="_blank"
-                                    class="ml-1 inline-flex items-center space-x-1 font-medium text-[#f53003] underline underline-offset-4 dark:text-[#FF4433]"
-                                >
-                                    <span>Laracasts</span>
-                                    <svg
-                                        width="10"
-                                        height="11"
-                                        viewBox="0 0 10 11"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        class="h-2.5 w-2.5"
-                                    >
-                                        <path
-                                            d="M7.70833 6.95834V2.79167H3.54167M2.5 8L7.5 3.00001"
-                                            stroke="currentColor"
-                                            stroke-linecap="square"
-                                        />
-                                    </svg>
-                                </a>
-                            </span>
-                        </li>
-                    </ul>
-                    <ul class="flex gap-3 text-sm leading-normal">
-                        <li>
-                            <a
-                                href="https://cloud.laravel.com"
-                                target="_blank"
-                                class="inline-block rounded-sm border border-black bg-[#1b1b18] px-5 py-1.5 text-sm leading-normal text-white hover:border-black hover:bg-black dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"
-                            >
+                </div>
+
+                <!-- Features Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-20">
+                    <div class="p-8 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl border border-rose-100 dark:border-rose-900 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                        <div class="text-5xl mb-4">💕</div>
+                        <h3 class="text-xl font-bold text-stone-900 dark:text-stone-100 mb-2">Landing Pages</h3>
+                        <p class="text-stone-600 dark:text-stone-400">
+                            Crea páginas únicas para contar tu historia de amor con fotos y contadores especiales
+                        </p>
+                    </div>
+
+                    <div class="p-8 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl border border-rose-100 dark:border-rose-900 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                        <div class="text-5xl mb-4">✉️</div>
+                        <h3 class="text-xl font-bold text-stone-900 dark:text-stone-100 mb-2">Invitaciones</h3>
+                        <p class="text-stone-600 dark:text-stone-400">
+                            Envía invitaciones interactivas a familiares y amigos para tus eventos especiales
+                        </p>
+                    </div>
+
+                    <div class="p-8 bg-white/60 dark:bg-stone-800/60 backdrop-blur-sm rounded-3xl border border-rose-100 dark:border-rose-900 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+                        <div class="text-5xl mb-4">📸</div>
+                        <h3 class="text-xl font-bold text-stone-900 dark:text-stone-100 mb-2">Galería de Fotos</h3>
+                        <p class="text-stone-600 dark:text-stone-400">
+                            Sube y organiza los mejores momentos de tu relación en galerías hermosas
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="w-full py-12 px-4 md:px-8 mt-20 border-t border-rose-100 dark:border-rose-900">
+            <div class="max-w-7xl mx-auto text-center space-y-4">
+                <p class="text-stone-600 dark:text-stone-400">
+                    Hecho con ❤️ para compartir historias de amor
+                </p>
+                <div class="pt-4">
+                    <p class="text-xs uppercase tracking-widest text-stone-400 dark:text-stone-500 mb-2">Desarrollado por</p>
+                    <a 
+                        href="https://kevinponcedev.xyz/" 
+                        target="_blank" 
+                        class="text-lg font-black text-stone-700 dark:text-stone-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                    >
+                        Kevin Ponce
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+</template>
+
+<style scoped>
+.animate-fade-in-down {
+    animation: fadeInDown 1s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
                                 Deploy now
                             </a>
                         </li>
