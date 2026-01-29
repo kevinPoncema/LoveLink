@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { computed, onMounted, ref } from 'vue';
+import MediaUpload from '@/components/ui/MediaUpload.vue';
 import { useMedia } from '@/composables/useMedia';
 import type { Media } from '@/types/auth';
-import MediaUpload from '@/components/ui/MediaUpload.vue';
 
 // Composables
 const {
@@ -469,7 +469,7 @@ onMounted(async () => {
                         <!-- Archivo -->
                         <div class="flex items-center gap-3">
                             <!-- Thumbnail -->
-                            <div class="w-10 h-10 rounded-lg overflow-hidden bg-stone-100 dark:bg-stone-700 flex-shrink-0">
+                            <div class="w-10 h-10 rounded-lg overflow-hidden bg-stone-100 dark:bg-stone-700 shrink-0">
                                 <img
                                     v-if="item.mime_type.startsWith('image/')"
                                     :src="item.url"
