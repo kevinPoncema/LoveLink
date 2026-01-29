@@ -40,7 +40,7 @@ export class InvitationService {
      * Obtener todas las invitations del usuario
      */
     async getUserInvitations(): Promise<Invitation[]> {
-        const response = await apiClient.get<Invitation[]>('/invitations');
+        const response = await apiClient.get<Invitation[]>('/api/invitations');
         return response.data || [];
     }
 
@@ -48,7 +48,7 @@ export class InvitationService {
      * Obtener una invitation específica por ID
      */
     async getInvitation(id: number): Promise<Invitation> {
-        const response = await apiClient.get<Invitation>(`/invitations/${id}`);
+        const response = await apiClient.get<Invitation>(`/api/invitations/${id}`);
         if (!response.data) {
             throw new Error('Invitation no encontrada');
         }
@@ -59,7 +59,7 @@ export class InvitationService {
      * Obtener invitation pública por slug (sin autenticación)
      */
     async getPublicInvitation(slug: string): Promise<Invitation> {
-        const response = await apiClient.get<Invitation>(`/public/invitation/${slug}`);
+        const response = await apiClient.get<Invitation>(`/api/public/invitation/${slug}`);
         if (!response.data) {
             throw new Error('Invitation no encontrada');
         }
@@ -70,7 +70,7 @@ export class InvitationService {
      * Crear nueva invitation
      */
     async createInvitation(data: CreateInvitationData): Promise<Invitation> {
-        const response = await apiClient.post<Invitation>('/invitations', data);
+        const response = await apiClient.post<Invitation>('/api/invitations', data);
         if (!response.data) {
             throw new Error('Error creando la invitation');
         }
@@ -81,7 +81,7 @@ export class InvitationService {
      * Actualizar invitation existente
      */
     async updateInvitation(id: number, data: UpdateInvitationData): Promise<Invitation> {
-        const response = await apiClient.put<Invitation>(`/invitations/${id}`, data);
+        const response = await apiClient.put<Invitation>(`/api/invitations/${id}`, data);
         if (!response.data) {
             throw new Error('Error actualizando la invitation');
         }
@@ -92,14 +92,14 @@ export class InvitationService {
      * Eliminar invitation (soft delete)
      */
     async deleteInvitation(id: number): Promise<void> {
-        await apiClient.delete(`/invitations/${id}`);
+        await apiClient.delete(`/api/invitations/${id}`);
     }
 
     /**
      * Vincular media a invitation
      */
     async attachMedia(invitationId: number, mediaId: number): Promise<void> {
-        await apiClient.post(`/invitations/${invitationId}/media`, {
+        await apiClient.post(`/api/invitations/${invitationId}/media`, {
             media_id: mediaId,
         });
     }
@@ -108,7 +108,7 @@ export class InvitationService {
      * Desvincular media de invitation
      */
     async detachMedia(invitationId: number, mediaId: number): Promise<void> {
-        await apiClient.delete(`/invitations/${invitationId}/media/${mediaId}`);
+        await apiClient.delete(`/api/invitations/${invitationId}/media/${mediaId}`);
     }
 
     /**
