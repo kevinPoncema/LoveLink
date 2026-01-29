@@ -34,7 +34,7 @@ class AttachMediaRequest extends FormRequest
     {
         return [
             'media_id' => 'required|exists:media,id',
-            'sort_order' => 'nullable|integer|min:1',
+            'sort_order' => 'nullable|integer|min:0',
         ];
     }
 
@@ -47,7 +47,7 @@ class AttachMediaRequest extends FormRequest
             'media_id.required' => 'El ID del media es obligatorio.',
             'media_id.exists' => 'El media seleccionado no existe.',
             'sort_order.integer' => 'El orden debe ser un número entero.',
-            'sort_order.min' => 'El orden debe ser mayor a 0.',
+            'sort_order.min' => 'El orden debe ser mayor o igual a 0.',
         ];
     }
 }

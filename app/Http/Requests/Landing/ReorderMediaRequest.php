@@ -22,7 +22,7 @@ class ReorderMediaRequest extends FormRequest
         return [
             'media_order' => 'required|array|min:1',
             'media_order.*.media_id' => 'required|exists:media,id',
-            'media_order.*.sort_order' => 'required|integer|min:1',
+            'media_order.*.sort_order' => 'required|integer|min:0',
         ];
     }
 
@@ -39,7 +39,7 @@ class ReorderMediaRequest extends FormRequest
             'media_order.*.media_id.exists' => 'Uno de los media especificados no existe.',
             'media_order.*.sort_order.required' => 'El orden es obligatorio para cada media.',
             'media_order.*.sort_order.integer' => 'El orden debe ser un número entero.',
-            'media_order.*.sort_order.min' => 'El orden debe ser mayor a 0.',
+            'media_order.*.sort_order.min' => 'El orden debe ser mayor o igual a 0.',
         ];
     }
 }
