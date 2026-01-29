@@ -138,6 +138,11 @@ const executeDelete = async () => {
     } catch (err: any) {
         console.error('Error deleting media:', err);
         showDeleteModal.value = false;
+
+        // Custom error message for 422 Conflict/Unprocessable Entity (Foreign Key Constraint)
+        if (err.response && err.response.status === 422) {
+            error.value = 'No se puede eliminar el archivo porque se está utilizando en alguna invitación, tema o página.';
+        }
     }
 };
 
