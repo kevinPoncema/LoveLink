@@ -47,7 +47,7 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 
 ## Estructura de Rutas
 
-### � Authentication
+### 🔐 Authentication
 
 | Ruta | Método | Qué Hace | Qué Devuelve |
 |------|--------|----------|--------------|
@@ -55,6 +55,8 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 | `/api/auth/register` | POST | Registra nuevo usuario | Usuario creado + token |
 | `/api/auth/logout` | POST | Cierra sesión del usuario autenticado | Confirmación logout |
 | `/api/auth/user` | GET | Obtiene datos del usuario autenticado | Datos del usuario actual |
+
+> **Nota:** Se utiliza `auth:sanctum,web` para permitir acceso híbrido tanto desde aplicaciones externas como desde el frontend de Inertia.
 
 ### 🎨 Themes
 
@@ -88,14 +90,16 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 | `/api/media` | POST | Sube nuevo archivo multimedia | Media creado con path |
 | `/api/media/{id}` | DELETE | Elimina media si no está en uso | Confirmación eliminación |
 
+> **Híbrido Local/Nube:** El sistema detecta automáticamente si el archivo está en S3 o local mediante el prefijo de la URL.
+
 ### 💌 Invitations
 
 | Ruta | Método | Qué Hace | Qué Devuelve |
 |------|--------|----------|--------------|
 | `/api/invitations` | GET | Lista invitations del usuario | Colección de invitaciones |
-| `/api/invitations` | POST | Crea invitation con slug único o enviado | Invitation creado |
-| `/api/invitations/{id}` | GET | Muestra detalles de invitation (PÚBLICO) | Invitation con media |
-| `/api/invitations/{slug}` | GET | Muestra invitation por slug (PÚBLICO) | Invitation con media |
+| `/api/invitations` | POST | Crea invitation con slug único y tema | Invitation creado |
+| `/api/invitations/{id}` | GET | Muestra detalles de invitation (PÚBLICO) | Invitation con media y tema |
+| `/api/invitations/{slug}` | GET | Muestra invitation por slug (PÚBLICO) | Invitation con media y tema |
 | `/api/invitations/{id}` | PUT | Actualiza datos de invitation | Invitation actualizado |
 | `/api/invitations/{id}` | DELETE | Soft delete de invitation | Confirmación eliminación |
 | `/api/invitations/{id}/media` | POST | Vincula media a invitation | Media attachado |
@@ -106,7 +110,7 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 | Ruta | Método | Qué Hace | Qué Devuelve |
 |------|--------|----------|--------------|
 | `/api/public/landing/{slug}` | GET | Muestra landing público por slug | Landing con tema y media |
-| `/api/public/invitation/{slug}` | GET | Muestra invitation público | Invitation con media si publicado |
+| `/api/public/invitation/{slug}` | GET | Muestra invitation público | Invitation con media y tema |
 
 ---
 
@@ -172,9 +176,9 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 ### 🏠 Landings
 
 **LandingController:**
-- **index:** Usuario → Lista landings del usuario únicamente
+- **index:** Usuario → Lista landings del usuario únicamente (eager loads theme)
 - **store:** Datos → Landing creado con slug autogenerado
-- **show:** ID landing → Detalles landing si es propietario
+- **show:** ID landing → Detalles landing si es propietario (eager loads theme, media)
 - **update:** ID + datos → Landing actualizado
 - **destroy:** ID → Landing eliminado
 
@@ -256,9 +260,9 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 ### 💌 Invitations
 
 **InvitationController:**
-- **index:** Usuario → Lista invitations del usuario únicamente
+- **index:** Usuario → Lista invitations del usuario únicamente (eager loads theme)
 - **store:** Datos → Invitation creado con slug autogenerado
-- **show:** ID invitation → Detalles si es propietario
+- **show:** ID invitation → Detalles si es propietario (eager loads theme, media)
 - **update:** ID + datos → Invitation actualizado
 - **destroy:** ID → Invitation eliminado (soft delete)
 
@@ -267,11 +271,11 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - **destroy:** Invitation ID + media ID → Media desvinculado
 
 **StoreInvitationRequest:**
-- Valida: title opcional, yes_message opcional, no_messages array opcional
+- Valida: title requerido, theme_id existe, yes_message opcional, no_messages array opcional
 - Autoriza: usuario autenticado
 
 **UpdateInvitationRequest:**
-- Valida: mismas reglas opcionales
+- Valida: mismas reglas opcionales, theme_id opcional
 - Autoriza: usuario propietario
 
 **AttachInvitationMediaRequest:**
@@ -303,83 +307,82 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 - **show:** Slug → Landing público con media y tema aplicado
 
 **PublicInvitationController:**
-- **show:** Slug → Invitation público con media si está publicado
-
-**Características especiales:**
-- Sin autenticación requerida
-- Datos optimizados para visitantes
-- Eager loading de relaciones necesarias
+- **show:** Slug → Invitation público con media y tema aplicado
 
 ---
 
 ## Reglas de Validación
 
-### 🔐 Authentication
+### 🔐 Authentication (Híbrida)
+
+Se utiliza Sanctum con soporte para web sessions (Inertia) y token cases (API externa).
 
 **LoginRequest:**
-- `email`: requerido, formato email válido
-- `password`: requerido, mínimo 1 carácter
+- email: requerido, formato email válido
+- password: requerido, mínimo 1 carácter
 
 **RegisterRequest:**
-- `email`: requerido, formato email válido, único en tabla users
-- `password`: requerido, mínimo 8 caracteres
-- `name`: opcional, máximo 255 caracteres
+- email: requerido, formato email válido, único en tabla users
+- password: requerido, mínimo 8 caracteres
+- name: opcional, máximo 255 caracteres
 
 ### 🎨 Themes
 
 **StoreThemeRequest:**
-- `name`: requerido, máximo 100 caracteres
-- `description`: opcional, tipo texto
-- `primary_color`: requerido, formato hex (#RRGGBB)
-- `secondary_color`: requerido, formato hex
-- `bg_color`: requerido, formato hex
-- `bg_image_file`: opcional, archivo de imagen (jpg, jpeg, png, webp), máximo 10MB
-- `bg_image_url`: opcional, URL válida, máximo 500 caracteres (auto-generado si se sube bg_image_file)
-- `css_class`: requerido, máximo 100 caracteres
+- name: requerido, máximo 100 caracteres
+- description: opcional, tipo texto
+- primary_color: requerido, formato hex (#RRGGBB)
+- secondary_color: requerido, formato hex
+- bg_color: requerido, formato hex
+- bg_image_file: opcional, archivo de imagen (jpg, jpeg, png, webp), máximo 10MB
+- bg_image_url: opcional, URL válida, máximo 500 caracteres (auto-generado si se sube bg_image_file)
+- css_class: requerido, máximo 100 caracteres
 
 **UpdateThemeRequest:**
 - Mismas reglas que StoreThemeRequest pero todas opcionales
-- Si se envía `bg_image_file`, reemplaza la imagen anterior y actualiza `bg_image_url`
+- Si se envía bg_image_file, reemplaza la imagen anterior y actualiza bg_image_url
 
 ### 🏠 Landings
 
 **StoreLandingRequest:**
-- `couple_names`: requerido, máximo 200 caracteres
-- `slug`: opcional, si no se envía se genera automáticamente desde couple_names
-- `anniversary_date`: requerido, formato fecha válida
-- `theme_id`: requerido, existe en tabla themes
-- `bio_text`: opcional, tipo texto largo
+- couple_names: requerido, máximo 200 caracteres
+- slug: opcional, si no se envía se genera automáticamente desde couple_names
+- anniversary_date: requerido, formato fecha válida
+- theme_id: requerido, existe en tabla themes
+- bio_text: opcional, tipo texto largo
 
 **UpdateLandingRequest:**
 - Mismas reglas que StoreLandingRequest pero todas opcionales
 
 **AttachMediaRequest:**
-- `media_id`: requerido, existe en tabla media
-- `sort_order`: opcional, numérico entero positivo
+- media_id: requerido, existe en tabla media
+- sort_order: opcional, numérico entero positivo
 
 **ReorderMediaRequest:**
-- `media_order`: requerido, array de objetos con media_id y sort_order
+- media_order: requerido, array de objetos con media_id y sort_order
 
 ### 📁 Media
 
 **StoreMediaRequest:**
-- `file`: requerido, archivo válido
-- `file.types`: jpg, jpeg, png, webp, gif
-- `file.size`: máximo 10MB (10485760 bytes)
+- file: requerido, archivo válido
+- file.types: jpg, jpeg, png, webp, gif
+- file.size: máximo 10MB (10485760 bytes)
 
 ### 💌 Invitations
 
 **StoreInvitationRequest:**
-- `title`: requerido, máximo 200 caracteres
-- `slug`: opcional, si no se envía se genera automáticamente desde title
-- `yes_message`: opcional, máximo 100 caracteres, default "Sí"
-- `no_messages`: opcional, array de strings, default ["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"]
+- title: requerido, máximo 200 caracteres
+- theme_id: requerido, existe en tabla themes
+- slug: opcional, si no se envía se genera automáticamente desde title
+- yes_message: opcional, máximo 100 caracteres, default "Sí"
+- no_messages: opcional, array de strings, default ["No", "Tal vez", "No te arrepentirás", "Piénsalo mejor"]
 
 **UpdateInvitationRequest:**
 - Mismas reglas que StoreInvitationRequest pero todas opcionales
+- theme_id: opcional, existe en tabla themes
 
 **AttachInvitationMediaRequest:**
-- `media_id`: requerido, existe en tabla media
+- media_id: requerido, existe en tabla media
 
 ---
 
@@ -389,63 +392,63 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `findByEmail` | string email | User o null | Busca usuario por email |
-| `create` | array datos | User | Crea nuevo usuario |
-| `findById` | int id | User o null | Busca usuario por ID |
+| findByEmail | string email | User o null | Busca usuario por email |
+| create | array datos | User | Crea nuevo usuario |
+| findById | int id | User o null | Busca usuario por ID |
 
 ### 🎨 ThemeRepository
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `findSystemThemes` | void | Collection | Obtiene temas del sistema |
-| `findUserThemes` | int userId | Collection | Obtiene temas del usuario |
-| `getSystemAndUserThemes` | int userId | Collection | Temas sistema + usuario |
-| `create` | array datos | Theme | Crea nuevo tema |
-| `update` | int id, array datos | Theme | Actualiza tema existente |
-| `findById` | int id | Theme o null | Busca tema por ID |
-| `delete` | int id | bool | Elimina tema |
+| findSystemThemes | void | Collection | Obtiene temas del sistema |
+| findUserThemes | int userId | Collection | Obtiene temas del usuario |
+| getSystemAndUserThemes | int userId | Collection | Temas sistema + usuario |
+| create | array datos | Theme | Crea nuevo tema |
+| update | int id, array datos | Theme | Actualiza tema existente |
+| findById | int id | Theme o null | Busca tema por ID |
+| delete | int id | bool | Elimina tema |
 
 ### 🏠 LandingRepository
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `findByUser` | int userId | Collection | Landings del usuario |
-| `findBySlug` | string slug | Landing o null | Busca landing por slug |
-| `create` | array datos | Landing | Crea nueva landing |
-| `update` | int id, array datos | Landing | Actualiza landing |
-| `findById` | int id | Landing o null | Busca landing por ID |
-| `delete` | int id | bool | Elimina landing |
-| `attachMedia` | int landingId, int mediaId, int order | void | Vincula media con orden |
-| `detachMedia` | int landingId, int mediaId | void | Desvincula media |
-| `updateMediaOrder` | int landingId, array orders | void | Actualiza orden de media |
+| findByUser | int userId | Collection | Landings del usuario |
+| findBySlug | string slug | Landing o null | Busca landing por slug |
+| create | array datos | Landing | Crea nueva landing |
+| update | int id, array datos | Landing | Actualiza landing |
+| findById | int id | Landing o null | Busca landing por ID |
+| delete | int id | bool | Elimina landing |
+| attachMedia | int landingId, int mediaId, int order | void | Vincula media con orden |
+| detachMedia | int landingId, int mediaId | void | Desvincula media |
+| updateMediaOrder | int landingId, array orders | void | Actualiza orden de media |
 
 ### 📁 MediaRepository
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `findUserAccessible` | int userId | Collection | Media accesible por usuario |
-| `create` | array datos | Media | Crea nuevo media |
-| `findById` | int id | Media o null | Busca media por ID |
-| `delete` | int id | bool | Elimina media |
-| `isLinkedToAnyEntity` | int mediaId | bool | Verifica si está en uso |
-| `attachToLanding` | int landingId, int mediaId, int order | void | Vincula media a landing |
-| `detachFromLanding` | int landingId, int mediaId | void | Desvincula media de landing |
-| `attachToInvitation` | int invitationId, int mediaId | void | Vincula media a invitation |
-| `detachFromInvitation` | int invitationId, int mediaId | void | Desvincula media de invitation |
-| `updateLandingMediaOrder` | int landingId, array orders | void | Actualiza orden media landing |
-| `countMediaByEntity` | string entityType, int entityId | int | Cuenta media vinculado a entidad |
+| findUserAccessible | int userId | Collection | Media accesible por usuario |
+| create | array datos | Media | Crea nuevo media |
+| findById | int id | Media o null | Busca media por ID |
+| delete | int id | bool | Elimina media |
+| isLinkedToAnyEntity | int mediaId | bool | Verifica si está en uso |
+| attachToLanding | int landingId, int mediaId, int order | void | Vincula media a landing |
+| detachFromLanding | int landingId, int mediaId | void | Desvincula media de landing |
+| attachToInvitation | int invitationId, int mediaId | void | Vincula media a invitation |
+| detachFromInvitation | int invitationId, int mediaId | void | Desvincula media de invitation |
+| updateLandingMediaOrder | int landingId, array orders | void | Actualiza orden media landing |
+| countMediaByEntity | string entityType, int entityId | int | Cuenta media vinculado a entidad |
 
 ### 💌 InvitationRepository
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `findByUser` | int userId | Collection | Invitations del usuario |
-| `findBySlug` | string slug | Invitation o null | Busca invitation por slug |
-| `create` | array datos | Invitation | Crea nueva invitation |
-| `update` | int id, array datos | Invitation | Actualiza invitation |
-| `findById` | int id | Invitation o null | Busca invitation por ID |
-| `attachMedia` | int invitationId, int mediaId | void | Vincula media |
-| `detachMedia` | int invitationId, int mediaId | void | Desvincula media |
+| findByUser | int userId | Collection | Invitations del usuario |
+| findBySlug | string slug | Invitation o null | Busca invitation por slug |
+| create | array datos | Invitation | Crea nueva invitation |
+| update | int id, array datos | Invitation | Actualiza invitation |
+| findById | int id | Invitation o null | Busca invitation por ID |
+| attachMedia | int invitationId, int mediaId | void | Vincula media |
+| detachMedia | int invitationId, int mediaId | void | Desvincula media |
 
 ---
 
@@ -455,75 +458,75 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `login` | LoginRequest | JSON token+user | Autentica y genera token |
-| `register` | RegisterRequest | JSON user+token | Registra usuario |
-| `logout` | Request autenticado | JSON success | Revoca tokens |
-| `user` | Request autenticado | JSON user | Datos usuario actual |
+| login | LoginRequest | JSON token+user | Autentica y genera token |
+| register | RegisterRequest | JSON user+token | Registra usuario |
+| logout | Request autenticado | JSON success | Revoca tokens |
+| user | Request autenticado | JSON user | Datos usuario actual |
 
 ### 🎨 ThemeController
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `index` | Request autenticado | JSON themes | Lista temas disponibles |
-| `store` | StoreThemeRequest | JSON theme | Crea tema usuario |
-| `show` | Request + id | JSON theme | Detalles tema específico |
-| `update` | UpdateThemeRequest + id | JSON theme | Actualiza tema |
-| `destroy` | Request + id | JSON success | Elimina tema |
+| index | Request autenticado | JSON themes | Lista temas disponibles |
+| store | StoreThemeRequest | JSON theme | Crea tema usuario |
+| show | Request + id | JSON theme | Detalles tema específico |
+| update | UpdateThemeRequest + id | JSON theme | Actualiza tema |
+| destroy | Request + id | JSON success | Elimina tema |
 
 ### 🏠 LandingController
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `index` | Request autenticado | JSON landings | Lista landings usuario |
-| `store` | StoreLandingRequest | JSON landing | Crea landing con slug |
-| `show` | Request + id/slug (PÚBLICO) | JSON landing | Detalles landing con media y tema |
-| `update` | UpdateLandingRequest + id | JSON landing | Actualiza landing |
-| `destroy` | Request + id | JSON success | Elimina landing |
+| index | Request autenticado | JSON landings | Lista landings usuario (Inertia friendly) |
+| store | StoreLandingRequest | JSON landing | Crea landing con slug |
+| show | Request + id/slug (PÚBLICO) | JSON landing | Detalles landing con media y tema |
+| update | UpdateLandingRequest + id | JSON landing | Actualiza landing |
+| destroy | Request + id | JSON success | Elimina landing |
 
 ### 🏠 LandingMediaController
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `store` | AttachMediaRequest + landingId | JSON success | Vincula media a landing |
-| `destroy` | Request + landingId + mediaId | JSON success | Desvincula media |
-| `reorder` | ReorderMediaRequest + landingId | JSON success | Reordena media |
+| store | AttachMediaRequest + landingId | JSON success | Vincula media a landing |
+| destroy | Request + landingId + mediaId | JSON success | Desvincula media |
+| reorder | ReorderMediaRequest + landingId | JSON success | Reordena media |
 
-### 📁 MediaController
+### �� MediaController
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `index` | Request autenticado | JSON media | Lista media usuario |
-| `store` | StoreMediaRequest | JSON media | Sube archivo |
-| `destroy` | Request + id | JSON success | Elimina media |
+| index | Request autenticado | JSON media | Lista media usuario |
+| store | StoreMediaRequest | JSON media | Sube archivo (Local/S3 auto) |
+| destroy | Request + id | JSON success | Elimina media |
 
 ### 💌 InvitationController
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `index` | Request autenticado | JSON invitations | Lista invitations usuario |
-| `store` | StoreInvitationRequest | JSON invitation | Crea invitation con título |
-| `show` | Request + id/slug (PÚBLICO) | JSON invitation | Detalles invitation con media |
-| `update` | UpdateInvitationRequest + id | JSON invitation | Actualiza invitation |
-| `destroy` | Request + id | JSON success | Soft delete invitation |
+| index | Request autenticado | JSON invitations | Lista invitations usuario |
+| store | StoreInvitationRequest | JSON invitation | Crea invitation con título y tema |
+| show | Request + id/slug (PÚBLICO) | JSON invitation | Detalles invitation con media y tema |
+| update | UpdateInvitationRequest + id | JSON invitation | Actualiza invitation (incluyendo tema) |
+| destroy | Request + id | JSON success | Soft delete invitation |
 
 ### 💌 InvitationMediaController
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `store` | AttachInvitationMediaRequest + invitationId | JSON success | Vincula media |
-| `destroy` | Request + invitationId + mediaId | JSON success | Desvincula media |
+| store | AttachInvitationMediaRequest + invitationId | JSON success | Vincula media |
+| destroy | Request + invitationId + mediaId | JSON success | Desvincula media |
 
 ### 🌐 PublicLandingController
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `show` | Request + slug | JSON landing | Landing público optimizado |
+| show | Request + slug | JSON landing | Landing público optimizado |
 
 ### 🌐 PublicInvitationController
 
 | Método | Recibe | Devuelve | Qué Hace |
 |--------|--------|----------|----------|
-| `show` | Request + slug | JSON invitation | Invitation público |
+| show | Request + slug | JSON invitation | Invitation público con tema y media |
 
 ---
 
@@ -531,343 +534,42 @@ Organización conceptual de la API REST siguiendo la arquitectura **Controller �
 
 ### 🔄 Flujo Típico de Creación
 
-1. **Request HTTP** llega al Controller
-2. **FormRequest** valida datos de entrada
-3. **Controller** llama al Service con datos validados
-4. **Service** aplica lógica de negocio (slugs, defaults)
-5. **Service** llama al Repository para persistir
-6. **Repository** ejecuta query y retorna modelo
-7. **Service** retorna resultado al Controller
-8. **Controller** devuelve JSON response
+1. Request HTTP llega al Controller
+2. FormRequest valida datos de entrada
+3. Controller llama al Service con datos validados
+4. Service aplica lógica de negocio (slugs, defaults)
+5. Service llama al Repository para persistir
+6. Repository ejecuta query y retorna modelo
+7. Service retorna resultado al Controller
+8. Controller devuelve JSON response
 
 ### 📊 Filtrado por Usuario
 
-**Principio:** Todos los endpoints `index` filtran por usuario autenticado
+Principio: Todos los endpoints index filtran por usuario autenticado
 
-- **Landings index:** Solo landings donde user_id = auth.id
-- **Invitations index:** Solo invitations donde user_id = auth.id  
-- **Media index:** Solo media vinculado a landings/invitations del usuario
-- **Themes index:** Temas sistema + temas donde user_id = auth.id
+- Landings index: Solo landings donde user_id = auth.id
+- Invitations index: Solo invitations donde user_id = auth.id  
+- Media index: Solo media vinculado a landings/invitations del usuario
+- Themes index: Temas sistema + temas donde user_id = auth.id
 
 ### 🔗 Gestión de Media Pivot
 
-**Landing ↔ Media:**
+Landing ↔ Media:
 - Tabla pivot: landing_media (landing_id, media_id, sort_order)
 - Operaciones: attach, detach, reorder
 - Límite: máximo 20 media por landing
 
-**Invitation ↔ Media:**
+Invitation ↔ Media:
 - Tabla pivot: invitation_media (invitation_id, media_id)
 - Operaciones: attach, detach
 - Límite: máximo 20 media por invitation
 
-**Theme ↔ Media (Background Images):**
+Theme ↔ Media (Background Images):
 - Relación directa: themes.bg_image_url apunta a media.url
 - Campo adicional en themes: bg_image_media_id (opcional, para referencia)
 - Operaciones: upload, replace, delete
 - Límite: 1 imagen de fondo por tema
-- Nota: Al eliminar tema, se elimina también su media de imagen de fondo
-
-### 📝 Generación de Slugs
-
-**Algoritmo común para Landing e Invitation:**
-1. Tomar nombres/title como base
-2. Convertir a minúsculas
-3. Remover acentos y caracteres especiales
-4. Reemplazar espacios por guiones
-5. Verificar unicidad en base de datos
-6. Si existe, agregar sufijo numérico
-
----
-
-## 🧪 Testing
-
-### 🎯 Estrategia de Testing
-
-**Principios Generales:**
-- **Feature Tests** para todos los endpoints
-- **Validación de códigos HTTP** apropiados para cada escenario
-- **Tests de autorización** para operaciones protegidas
-- **Tests de validación** para FormRequests
-- **Tests de Storage** para operaciones de media
-
-### 📋 Tests por Entidad
-
-### 🔐 AuthControllerTest
-
-**Tests Exitosos (200/201):**
-- `test_user_can_login_with_valid_credentials()` - POST `/api/auth/login`
-- `test_user_can_register_with_valid_data()` - POST `/api/auth/register`
-- `test_authenticated_user_can_logout()` - POST `/api/auth/logout`
-- `test_authenticated_user_can_get_profile()` - GET `/api/auth/user`
-
-**Tests de Error:**
-- `test_login_fails_with_invalid_credentials()` - 422 Unprocessable Entity
-- `test_login_requires_email_and_password()` - 422 Validation Errors
-- `test_register_fails_with_duplicate_email()` - 422 Email already taken
-- `test_register_requires_valid_email_format()` - 422 Validation Errors
-- `test_logout_requires_authentication()` - 401 Unauthorized
-- `test_get_user_requires_authentication()` - 401 Unauthorized
-
-### 🎨 ThemeControllerTest
-
-**Tests Exitosos (200/201):**
-- `test_user_can_list_available_themes()` - GET `/api/themes`
-- `test_user_can_create_custom_theme()` - POST `/api/themes`
-- `test_user_can_create_theme_with_background_image()` - POST `/api/themes` (con archivo)
-- `test_user_can_view_theme_details()` - GET `/api/themes/{id}`
-- `test_user_can_update_own_theme()` - PUT `/api/themes/{id}`
-- `test_user_can_update_theme_background_image()` - PUT `/api/themes/{id}` (con archivo)
-- `test_user_can_delete_own_theme()` - DELETE `/api/themes/{id}`
-
-**Tests de Error:**
-- `test_theme_creation_requires_authentication()` - 401 Unauthorized
-- `test_theme_creation_validates_required_fields()` - 422 Validation Errors
-- `test_theme_creation_validates_hex_color_format()` - 422 Invalid color format
-- `test_theme_creation_validates_background_image_file()` - 422 Invalid image file
-- `test_theme_background_image_validates_file_size()` - 422 Image too large
-- `test_theme_background_image_validates_file_type()` - 422 Invalid file type
-- `test_user_cannot_update_system_theme()` - 403 Forbidden
-- `test_user_cannot_update_other_user_theme()` - 403 Forbidden
-- `test_theme_not_found_returns_404()` - 404 Not Found
-
-### 🏠 LandingControllerTest
-
-**Tests Exitosos (200/201):**
-- `test_user_can_list_own_landings()` - GET `/api/landings`
-- `test_user_can_create_landing_with_auto_slug()` - POST `/api/landings`
-- `test_user_can_create_landing_with_custom_slug()` - POST `/api/landings`
-- `test_anyone_can_view_landing_by_id()` - GET `/api/landings/{id}` (PÚBLICO)
-- `test_anyone_can_view_landing_by_slug()` - GET `/api/landings/{slug}` (PÚBLICO)
-- `test_user_can_update_own_landing()` - PUT `/api/landings/{id}`
-- `test_user_can_delete_own_landing()` - DELETE `/api/landings/{id}`
-
-**Tests de Error:**
-- `test_landing_creation_requires_authentication()` - 401 Unauthorized
-- `test_landing_creation_validates_required_fields()` - 422 Validation Errors
-- `test_landing_creation_validates_theme_exists()` - 422 Invalid theme_id
-- `test_landing_creation_validates_unique_slug_per_user()` - 422 Slug taken
-- `test_user_cannot_update_other_user_landing()` - 403 Forbidden
-- `test_user_cannot_delete_other_user_landing()` - 403 Forbidden
-- `test_landing_not_found_returns_404()` - 404 Not Found
-
-### 🏠 LandingMediaControllerTest
-
-**Tests Exitosos (200/201):**
-- `test_user_can_attach_media_to_own_landing()` - POST `/api/landings/{id}/media`
-- `test_user_can_detach_media_from_own_landing()` - DELETE `/api/landings/{id}/media/{mediaId}`
-- `test_user_can_reorder_landing_media()` - PUT `/api/landings/{id}/media/reorder`
-
-**Tests de Error:**
-- `test_media_attachment_requires_authentication()` - 401 Unauthorized
-- `test_user_cannot_attach_media_to_other_user_landing()` - 403 Forbidden
-- `test_cannot_attach_non_existent_media()` - 422 Invalid media_id
-- `test_cannot_attach_media_beyond_limit()` - 422 Media limit exceeded (20)
-- `test_cannot_attach_other_user_media()` - 403 Forbidden
-- `test_media_reorder_validates_media_belongs_to_landing()` - 422 Invalid media
-
-### 📁 MediaControllerTest
-
-**Tests Exitosos (200/201):**
-- `test_user_can_list_accessible_media()` - GET `/api/media`
-- `test_user_can_upload_valid_image()` - POST `/api/media`
-- `test_user_can_delete_unused_media()` - DELETE `/api/media/{id}`
-
-**Tests de Error:**
-- `test_media_operations_require_authentication()` - 401 Unauthorized
-- `test_media_upload_validates_file_type()` - 422 Invalid file type
-- `test_media_upload_validates_file_size()` - 422 File too large (>10MB)
-- `test_media_upload_requires_file()` - 422 File required
-- `test_cannot_delete_media_in_use()` - 422 Media is linked to entities
-- `test_user_cannot_delete_other_user_media()` - 403 Forbidden
-- `test_media_not_found_returns_404()` - 404 Not Found
-
-### 💌 InvitationControllerTest
-
-**Tests Exitosos (200/201):**
-- `test_user_can_list_own_invitations()` - GET `/api/invitations`
-- `test_user_can_create_invitation_with_title()` - POST `/api/invitations`
-- `test_user_can_create_invitation_with_custom_slug()` - POST `/api/invitations`
-- `test_anyone_can_view_invitation_by_id()` - GET `/api/invitations/{id}` (PÚBLICO)
-- `test_anyone_can_view_invitation_by_slug()` - GET `/api/invitations/{slug}` (PÚBLICO)
-- `test_user_can_update_own_invitation()` - PUT `/api/invitations/{id}`
-- `test_user_can_soft_delete_own_invitation()` - DELETE `/api/invitations/{id}`
-
-**Tests de Error:**
-- `test_invitation_creation_requires_authentication()` - 401 Unauthorized
-- `test_invitation_creation_requires_title()` - 422 Title required
-- `test_invitation_creation_validates_slug_uniqueness()` - 422 Slug taken
-- `test_user_cannot_update_other_user_invitation()` - 403 Forbidden
-- `test_user_cannot_delete_other_user_invitation()` - 403 Forbidden
-- `test_invitation_not_found_returns_404()` - 404 Not Found
-
-### 💌 InvitationMediaControllerTest
-
-**Tests Exitosos (200/201):**
-- `test_user_can_attach_media_to_own_invitation()` - POST `/api/invitations/{id}/media`
-- `test_user_can_detach_media_from_own_invitation()` - DELETE `/api/invitations/{id}/media/{mediaId}`
-
-**Tests de Error:**
-- `test_media_attachment_requires_authentication()` - 401 Unauthorized
-- `test_user_cannot_attach_media_to_other_user_invitation()` - 403 Forbidden
-- `test_cannot_attach_non_existent_media()` - 422 Invalid media_id
-- `test_cannot_attach_media_beyond_limit()` - 422 Media limit exceeded (20)
-- `test_cannot_attach_other_user_media()` - 403 Forbidden
-
-
-### 📂 Organización de Tests
-
-```
-tests/
-├── Feature/
-│   ├── Auth/
-│   │   └── AuthControllerTest.php
-│   ├── Themes/
-│   │   └── ThemeControllerTest.php
-│   ├── Landings/
-│   │   ├── LandingControllerTest.php
-│   │   └── LandingMediaControllerTest.php
-│   ├── Media/
-│   │   └── MediaControllerTest.php
-│   ├── Invitations/
-│   │   ├── InvitationControllerTest.php
-│   │   └── InvitationMediaControllerTest.php
-│   └── Public/
-│       └── PublicControllerTest.php
-├── Unit/
-│   ├── Services/
-│   │   ├── MediaServiceTest.php
-│   │   ├── LandingServiceTest.php
-│   │   └── InvitationServiceTest.php
-│   └── Repositories/
-│       ├── MediaRepositoryTest.php
-│       ├── LandingRepositoryTest.php
-│       └── InvitationRepositoryTest.php
-└── TestCase.php
-```
-
-### 🔧 Configuración de Storage
-
-**Storage de Laravel para Media:**
-
-```php
-// config/filesystems.php
-'disks' => [
-    'media' => [
-        'driver' => env('MEDIA_STORAGE_DRIVER', 'local'),
-        'root' => storage_path('app/public/media'),
-        'url' => env('APP_URL').'/storage/media',
-        'visibility' => 'public',
-    ],
-    
-    'media_cloud' => [
-        'driver' => 's3',
-        'key' => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
-        'region' => env('AWS_DEFAULT_REGION'),
-        'bucket' => env('AWS_BUCKET'),
-        'url' => env('AWS_URL'),
-        'endpoint' => env('AWS_ENDPOINT'),
-        'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-    ],
-]
-```
-
-**Configuración Flexible via .env:**
-
-```bash
-# Configuración Local (Desarrollo)
-MEDIA_STORAGE_DRIVER=local
-MEDIA_DISK=media
-
-# Configuración Cloud (Producción)
-MEDIA_STORAGE_DRIVER=s3
-MEDIA_DISK=media_cloud
-AWS_ACCESS_KEY_ID=your_key
-AWS_SECRET_ACCESS_KEY=your_secret
-AWS_DEFAULT_REGION=us-east-1
-AWS_BUCKET=your-bucket-name
-AWS_URL=https://your-bucket.s3.amazonaws.com
-```
-
-**Implementación en MediaService:**
-
-```php
-// app/Services/MediaService.php
-class MediaService
-{
-    protected $disk;
-    
-    public function __construct()
-    {
-        $this->disk = Storage::disk(config('filesystems.media_disk', 'media'));
-    }
-    
-    public function uploadMedia(UploadedFile $file, int $userId): Media
-    {
-        $path = $this->generateFilePath($file);
-        
-        // Storage automáticamente usará el driver configurado
-        $storedPath = $this->disk->putFileAs(
-            "users/{$userId}", 
-            $file, 
-            $path
-        );
-        
-        return $this->mediaRepository->create([
-            'user_id' => $userId,
-            'filename' => $file->getClientOriginalName(),
-            'path' => $storedPath,
-            'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize(),
-            'url' => $this->disk->url($storedPath)
-        ]);
-    }
-    
-    public function deleteMedia(int $mediaId, int $userId): bool
-    {
-        $media = $this->mediaRepository->findById($mediaId);
-        
-        if (!$media || $media->user_id !== $userId) {
-            return false;
-        }
-        
-        // Eliminar archivo del storage
-        $this->disk->delete($media->path);
-        
-        // Eliminar registro de base de datos
-        return $this->mediaRepository->delete($mediaId);
-    }
-}
-```
-
-**Beneficios de esta Configuración:**
-
-1. **Flexibilidad de Deployment:**
-   - Desarrollo: archivos locales en `storage/app/public/media`
-   - Producción: AWS S3, Google Cloud Storage, etc.
-
-2. **Cambio Sin Código:**
-   - Solo modificar variables de entorno
-   - No tocar código de la aplicación
-
-3. **Testing:**
-   - Tests usan `fake()` disk para no crear archivos reales
-   - Storage se resetea entre tests
-
-4. **URLs Automáticas:**
-   - Laravel genera URLs apropiadas según el driver
-   - Local: `http://app.test/storage/media/file.jpg`
-   - S3: `https://bucket.s3.amazonaws.com/users/1/file.jpg`
-
-### 🧪 Tests de Storage
-
-**MediaStorageTest.php:**
-- `test_can_upload_file_to_configured_disk()`
-- `test_can_delete_file_from_disk()`
-- `test_generates_correct_urls_for_storage_driver()`
-- `test_respects_user_directory_structure()`
-- `test_handles_storage_failures_gracefully()`
+- Nota: Al eliminar tema, se devuelve boolean pero el service gestiona el storage.
 
 ---
 
@@ -875,28 +577,18 @@ class MediaService
 
 ### Por cada entidad debe tener:
 
-**Controllers:**
+Controllers:
 - Métodos CRUD que filtren por usuario apropiadamente
-- Manejo de errores HTTP consistente
-- Responses en formato JSON estandarizado
+- Manejo de respuestas Inertia o JSON según el caso
+- Eager loading de temas y media para evitar N+1
 
-**FormRequests:**
-- Validaciones completas y específicas por acción
-- Mensajes de error claros y traducibles
-- Autorización básica de acceso
+FormRequests:
+- Validaciones completas (especialmente theme_id en invitaciones)
+- Autorización basada en ownership
 
-**Services:**
-- Lógica de negocio centralizada y reutilizable
-- Manejo de transacciones cuando sea necesario
-- Generación de datos automáticos (slugs, defaults)
+Services:
+- Lógica de slugs y gestión de storage
+- Orchestration entre repositories
 
-**Repositories:**
-- Métodos de acceso a datos específicos y eficientes
-- Eager loading para evitar N+1 queries
-- Filtros apropiados por usuario y estado
-
-**Características transversales:**
-- Filtrado consistente por usuario en índices
-- Generación automática de slugs únicos
-- Validación de límites de media
-- Gestión apropiada de relaciones pivot
+Repositories:
+- Consultas optimizadas con relaciones precargadas
