@@ -10,6 +10,8 @@ export type Invitation = {
     no_messages: string[];
     is_published: boolean;
     user_id: number;
+    theme_id?: number | null;
+    theme?: any; // Avoiding circular dependency with Theme type for now, or import it if better
     created_at: string;
     updated_at: string;
     deleted_at?: string;
@@ -22,6 +24,7 @@ export type InvitationMedia = {
     path: string;
     mime_type: string;
     size: number;
+    url?: string;
 };
 
 export type CreateInvitationData = {
@@ -29,6 +32,7 @@ export type CreateInvitationData = {
     slug?: string;
     yes_message?: string;
     no_messages?: string[];
+    theme_id?: number | null;
 };
 
 export type UpdateInvitationData = Partial<CreateInvitationData> & {

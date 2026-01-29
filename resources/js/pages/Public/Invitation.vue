@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
+import { computed, onMounted, ref } from 'vue';
 import { useInvitations } from '@/composables/useInvitations';
 
 const props = defineProps<{
@@ -18,9 +18,33 @@ onMounted(async () => {
     await loadPublicInvitation(props.slug);
 });
 
+// Theme customization with robust defaults
+const themeStyles = computed(() => {
+    const defaultTheme = {
+        primary: '#e11d48',   // Rose 600
+        secondary: '#fafaf9', // Stone 50
+        bg: '#fafaf9',        // Stone 50
+        text: '#1c1917'       // Stone 900
+    };
+
+    const theme = invitation.value?.theme;
+    
+    return {
+        '--primary-color': theme?.primary_color || defaultTheme.primary,
+        '--secondary-color': theme?.secondary_color || defaultTheme.secondary, 
+        '--bg-color': theme?.background_color || defaultTheme.bg,
+        '--text-color': defaultTheme.text,
+    };
+});
+
+// Background image from theme
+const bgImage = computed(() => {
+    return invitation.value?.theme?.bg_image_url || null;
+});
+
 const currentImage = computed(() => {
     if (!invitation.value || !invitation.value.media || invitation.value.media.length === 0) {
-        return null;
+        return null; // TODO: Add default placeholder
     }
     const media = invitation.value.media[currentImageIndex.value] as any;
     return media.url || null;
@@ -55,11 +79,23 @@ const yesButtonScale = computed(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-stone-50 text-stone-900 flex flex-col items-center justify-center p-4 overflow-hidden relative">
+    <div 
+        class="min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden relative transition-colors duration-500"
+        :style="{ 
+            backgroundColor: themeStyles['--bg-color'], 
+            color: themeStyles['--text-color'] 
+        }"
+    >
         <Head :title="invitation?.title || 'Invitación'" />
 
+        <!-- Background Image -->
+        <div v-if="bgImage" class="absolute inset-0 z-0">
+            <img :src="bgImage" alt="Background" class="w-full h-full object-cover opacity-20 blur-sm" />
+            <div class="absolute inset-0 bg-black/10"></div>
+        </div>
+
         <!-- Error State -->
-        <div v-if="error" class="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md">
+        <div v-if="error" class="text-center p-8 bg-white/90 backdrop-blur rounded-2xl shadow-xl max-w-md relative z-10">
             <div class="text-4xl mb-4">💔</div>
             <h1 class="text-xl font-bold mb-2">No pudimos encontrar esta invitación</h1>
             <p class="text-stone-600 mb-4">{{ error }}</p>
@@ -67,97 +103,127 @@ const yesButtonScale = computed(() => {
         </div>
 
         <!-- Loading State -->
-        <div v-else-if="isLoading || !invitation" class="flex flex-col items-center">
+        <div v-else-if="isLoading || !invitation" class="flex flex-col items-center relative z-10">
             <div class="animate-bounce text-6xl mb-4">💌</div>
             <p class="text-stone-500 animate-pulse">Cargando sorpresa...</p>
         </div>
 
         <!-- Content -->
-        <div v-else class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-white transform transition-all hover:scale-[1.01]">
+        <div v-else class="w-full max-w-7xl h-[90vh] md:h-[85vh] bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border-4 border-white/50 transform transition-all flex flex-col relative z-20">
 
-            <!-- Image Area -->
-            <div class="relative aspect-square bg-stone-200 overflow-hidden">
-                <transition
-                    enter-active-class="transition-opacity duration-500 ease-in-out"
-                    enter-from-class="opacity-0"
-                    enter-to-class="opacity-100"
-                    leave-active-class="transition-opacity duration-300 ease-in-out absolute inset-0"
-                    leave-from-class="opacity-100"
-                    leave-to-class="opacity-0"
-                >
-                    <img
-                        v-if="currentImage"
-                        :key="currentImageIndex"
-                        :src="currentImage"
-                        class="w-full h-full object-cover"
-                        alt="Invitación"
-                    />
-                    <div v-else class="w-full h-full flex items-center justify-center bg-rose-100 text-rose-300">
-                        <span class="text-8xl">🎉</span>
-                    </div>
-                </transition>
+            <div class="flex flex-col md:flex-row h-full">
+                <!-- Image Area - Takes more space on desktop -->
+                <div class="relative w-full md:w-3/5 h-[45%] md:h-full bg-stone-200 overflow-hidden">
+                    <transition
+                        enter-active-class="transition-opacity duration-1000 ease-in-out"
+                        enter-from-class="opacity-0"
+                        enter-to-class="opacity-100"
+                        leave-active-class="transition-opacity duration-500 ease-in-out absolute inset-0"
+                        leave-from-class="opacity-100"
+                        leave-to-class="opacity-0"
+                    >
+                        <img
+                            v-if="currentImage"
+                            :key="currentImageIndex"
+                            :src="currentImage"
+                            class="w-full h-full object-cover"
+                            alt="Invitación"
+                        />
+                        <div v-else class="w-full h-full flex items-center justify-center bg-rose-100 text-rose-300">
+                            <span class="text-8xl animate-pulse">💝</span>
+                        </div>
+                    </transition>
 
-                <!-- Floating Confetti Animation Background (CSS only) -->
-                <div v-if="hasSaidYes" class="absolute inset-0 pointer-events-none z-10 flex items-center justify-center bg-white/30 backdrop-blur-sm">
-                    <div class="text-center animate-bounce">
-                        <div class="text-9xl transform drop-shadow-lg">🎊</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Text Area -->
-            <div class="p-8 text-center relative z-20 bg-white">
-                <template v-if="!hasSaidYes">
-                    <h1 class="text-2xl font-bold mb-2 text-rose-600">{{ invitation.title }}</h1>
-
-                    <!-- Not showing content because it's not in DB -->
-
-                    <div v-if="noInteractionText" class="mb-4 text-red-500 font-medium animate-pulse min-h-[1.5em]">
-                        {{ noInteractionText }}
-                    </div>
-                    <div v-else class="mb-8 min-h-[1.5em]"></div> <!-- Spacer -->
-
-                    <div class="flex flex-col gap-4 items-center">
-                        <button
-                            @click="handleYes"
-                            :style="{ transform: `scale(${yesButtonScale})` }"
-                            class="bg-rose-600 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:bg-rose-700 hover:shadow-rose-500/30 transition-all active:scale-95 w-full max-w-[200px]"
-                        >
-                            ¡SÍ! 🥳
-                        </button>
-
-                        <button
-                            @click="handleNo"
-                            class="text-stone-400 font-medium text-sm hover:text-stone-600 transition-colors px-4 py-2 hover:bg-stone-100 rounded-lg"
-                        >
-                            No, gracias
-                        </button>
-                    </div>
-                </template>
-
-                <template v-else>
-                    <div class="py-8">
-                        <h2 class="text-3xl font-bold text-rose-600 mb-4 animate-bounce">
-                            ¡SIIIIIII! 🎉
-                        </h2>
-                        <p class="text-xl text-stone-700">
-                            {{ invitation.yes_message || '¡Sabía que dirías que sí!' }}
-                        </p>
-                        <div class="mt-8 text-6xl animate-pulse">
-                            ✨
+                    <!-- Floating Confetti Animation Background (CSS only) -->
+                    <div v-if="hasSaidYes" class="absolute inset-0 pointer-events-none z-10 flex items-center justify-center bg-white/30 backdrop-blur-sm">
+                        <div class="text-center animate-bounce">
+                            <div class="text-9xl transform drop-shadow-lg">🎊</div>
                         </div>
                     </div>
-                </template>
+                </div>
+
+                <!-- Text Area - Flex col for centering content -->
+                <div class="relative w-full md:w-2/5 p-6 md:p-12 flex flex-col justify-center items-center text-center bg-white/80 backdrop-blur-md overflow-y-auto">
+                    <template v-if="!hasSaidYes">
+                        <h1 
+                            class="text-3xl md:text-5xl font-extrabold mb-6 transition-colors duration-300 drop-shadow-sm leading-tight"
+                            :style="{ color: themeStyles['--primary-color'] }"
+                        >
+                            {{ invitation.title }}
+                        </h1>
+
+                        <div v-if="noInteractionText" class="mb-8 min-h-[3em] flex items-center justify-center">
+                            <span class="text-xl md:text-2xl font-bold animate-elastic text-red-500 bg-red-50 px-4 py-2 rounded-xl shadow-inner inline-block transform rotate-2">
+                                {{ noInteractionText }} 💔
+                            </span>
+                        </div>
+                        <div v-else class="mb-8 min-h-[3em]"></div> <!-- Spacer -->
+
+                        <div class="flex flex-col gap-6 items-center w-full max-w-sm">
+                            <button
+                                @click="handleYes"
+                                :style="[
+                                    { transform: `scale(${yesButtonScale})` },
+                                    { backgroundColor: themeStyles['--primary-color'] }
+                                ]"
+                                class="text-white px-10 py-5 rounded-full font-black text-2xl shadow-xl hover:brightness-110 hover:shadow-2xl transition-all active:scale-95 w-full uppercase tracking-widest ring-4 ring-transparent hover:ring-rose-200"
+                            >
+                                ¡SÍ! <span class="inline-block animate-bounce">🥳</span>
+                            </button>
+
+                            <button
+                                @click="handleNo"
+                                class="text-stone-400 font-semibold text-base hover:text-stone-600 transition-colors px-6 py-3 hover:bg-stone-100 rounded-full cursor-pointer select-none"
+                            >
+                                {{ noCount === 0 ? 'No, gracias' : 'Mmm... no sé' }}
+                            </button>
+                        </div>
+                    </template>
+
+                    <template v-else>
+                        <div class="py-12 animate-fade-in-up">
+                            <h2 
+                                class="text-4xl md:text-6xl font-black mb-8 animate-bounce leading-tight"
+                                :style="{ color: themeStyles['--primary-color'] }"
+                            >
+                                ¡SIIIIIII! 🎉
+                            </h2>
+                            <p class="text-2xl md:text-3xl text-stone-700 font-medium leading-relaxed">
+                                {{ invitation.yes_message || '¡Sabía que dirías que sí!' }}
+                            </p>
+                            <div class="mt-12 text-7xl animate-pulse flex justify-center gap-4">
+                                <span>💖</span><span>✨</span><span>💑</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
             </div>
+            
         </div>
 
         <!-- Footer -->
-        <footer class="fixed bottom-4 text-center w-full text-stone-400 text-xs pointer-events-none">
-            Hecho con ✨ en LoveLink
+        <footer class="fixed bottom-2 text-center w-full text-stone-400/80 text-xs pointer-events-none mix-blend-multiply z-30">
+            Hecho con ✨ en UsPage
         </footer>
     </div>
 </template>
 
 <style scoped>
-/* Simple confetti-like floaters could be added here if needed */
-</style>
+@keyframes elastic {
+    0%, 100% { transform: scale(1) rotate(2deg); }
+    50% { transform: scale(1.1) rotate(-2deg); }
+}
+.animate-elastic {
+    animation: elastic 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

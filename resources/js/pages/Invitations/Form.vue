@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { computed, onMounted, ref } from 'vue';
+
+import MediaUpload from '@/components/ui/MediaUpload.vue';
+
 import { useInvitations } from '@/composables/useInvitations';
 import { useMedia } from '@/composables/useMedia';
-import type { Media } from '@/types/auth';
+import { useThemes } from '@/composables/useThemes'; // Removed unused Theme type import
 import type { CreateInvitationData } from '@/services/invitation/InvitationService';
-import MediaUpload from '@/components/ui/MediaUpload.vue';
+import type { Media } from '@/types/auth';
 
 const props = defineProps<{
     id?: number; // Optional ID for edit mode
@@ -13,6 +16,7 @@ const props = defineProps<{
 
 const { invitation, createInvitation, updateInvitation, isLoading, error: invError, loadInvitation, attachMedia, detachMedia } = useInvitations();
 const { media: galleryMedia, loadMedia } = useMedia();
+const { loadThemes, systemThemes, userThemes } = useThemes();
 
 // Form State
 const form = ref({
@@ -21,6 +25,7 @@ const form = ref({
     yes_message: '¡Sabía que dirías que sí! ❤️',
     no_messages: ['¡Oh no! ¿Seguro? 🥺', '¡Piénsalo bien!', '¡No te rindas!'],
     is_published: false,
+    theme_id: null as number | null,
     selected_media: [] as number[], // IDs of selected media
 });
 
@@ -45,6 +50,7 @@ onMounted(async () => {
                     ? [...invitation.value.no_messages]
                     : ['¡Oh no! ¿Seguro? 🥺', '¡Piénsalo bien!', '¡No te rindas!'],
                 is_published: !!invitation.value.is_published,
+                theme_id: invitation.value.theme_id || null,
                 selected_media: invitation.value.media ? invitation.value.media.map((m: any) => m.id) : [],
             };
 
@@ -57,6 +63,7 @@ onMounted(async () => {
 
     // Load gallery for the modal
     loadMedia();
+    loadThemes();
 });
 
 const addNoMessage = () => {
@@ -103,6 +110,7 @@ const handleSubmit = async () => {
         slug: form.value.slug,
         yes_message: form.value.yes_message,
         no_messages: form.value.no_messages,
+        theme_id: form.value.theme_id,
     };
 
     try {
@@ -280,6 +288,128 @@ const generateSlug = () => {
                     <p class="mt-4 text-xs text-stone-500 dark:text-stone-400 text-center">
                         Estas fotos rotarán automáticamente si la persona intenta rechazar la invitación 😉
                     </p>
+                </section>
+
+                <!-- Selección de Tema -->
+                <section class="bg-white dark:bg-stone-800 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-700 p-6">
+                    <h2 class="text-lg font-semibold mb-6 flex items-center gap-2 dark:text-stone-100">
+                        <span>🎨</span> Tema Visual
+                    </h2>
+
+                    <div class="space-y-6">
+                        <!-- System Themes -->
+                        <div v-if="systemThemes.length > 0">
+                            <h3 class="text-xs font-bold text-stone-500 dark:text-stone-400 mb-3 uppercase tracking-wider">Temas del Sistema</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                <div 
+                                    v-for="theme in systemThemes" 
+                                    :key="theme.id"
+                                    @click="form.theme_id = theme.id"
+                                    class="cursor-pointer group"
+                                >
+                                    <div 
+                                        class="aspect-3/4 rounded-xl border-2 transition-all relative overflow-hidden flex flex-col items-center justify-center p-2"
+                                        :class="form.theme_id === theme.id ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-stone-200 dark:border-stone-700 hover:border-rose-300'"
+                                        :style="{ backgroundColor: theme.background_color || '#ffffff' }"
+                                    >
+                                        <!-- Background Image Preview -->
+                                        <img 
+                                            v-if="theme.bg_image_url" 
+                                            :src="theme.bg_image_url" 
+                                            class="absolute inset-0 w-full h-full object-cover opacity-50" 
+                                        />
+
+                                        <!-- Content Preview -->
+                                        <div class="relative z-10 w-full text-center">
+                                            <div 
+                                                class="font-bold text-lg mb-1"
+                                                :style="{ color: theme.primary_color || '#e11d48' }"
+                                            >
+                                                Título
+                                            </div>
+                                            <div 
+                                                class="px-3 py-1 rounded-full text-xs font-bold text-white mb-2 inline-block shadow-sm"
+                                                :style="{ backgroundColor: theme.primary_color || '#e11d48' }"
+                                            >
+                                                ¡SÍ!
+                                            </div>
+                                        </div>
+
+                                        <!-- Selection Check -->
+                                        <div 
+                                            class="absolute top-2 right-2 w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs shadow-md transition-transform duration-200"
+                                            :class="form.theme_id === theme.id ? 'scale-100' : 'scale-0'"
+                                        >
+                                            ✓
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-center mt-2 font-medium text-stone-600 dark:text-stone-400 truncate">{{ theme.name }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User Themes -->
+                        <div v-if="userThemes.length > 0">
+                            <h3 class="text-xs font-bold text-stone-500 dark:text-stone-400 mb-3 uppercase tracking-wider">Mis Temas</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                <div 
+                                    v-for="theme in userThemes" 
+                                    :key="theme.id"
+                                    @click="form.theme_id = theme.id"
+                                    class="cursor-pointer group"
+                                >
+                                     <div 
+                                        class="aspect-3/4 rounded-xl border-2 transition-all relative overflow-hidden flex flex-col items-center justify-center p-2"
+                                        :class="form.theme_id === theme.id ? 'border-rose-500 ring-2 ring-rose-500/20' : 'border-stone-200 dark:border-stone-700 hover:border-rose-300'"
+                                        :style="{ backgroundColor: theme.background_color || '#ffffff' }"
+                                    >
+                                        <img 
+                                            v-if="theme.bg_image_url" 
+                                            :src="theme.bg_image_url" 
+                                            class="absolute inset-0 w-full h-full object-cover opacity-50" 
+                                        />
+                                        <div class="relative z-10 w-full text-center">
+                                            <div 
+                                                class="font-bold text-lg mb-1"
+                                                :style="{ color: theme.primary_color || '#e11d48' }"
+                                            >
+                                                Título
+                                            </div>
+                                            <div 
+                                                class="px-3 py-1 rounded-full text-xs font-bold text-white mb-2 inline-block shadow-sm"
+                                                :style="{ backgroundColor: theme.primary_color || '#e11d48' }"
+                                            >
+                                                ¡SÍ!
+                                            </div>
+                                        </div>
+                                        <div 
+                                            class="absolute top-2 right-2 w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs shadow-md transition-transform duration-200"
+                                            :class="form.theme_id === theme.id ? 'scale-100' : 'scale-0'"
+                                        >
+                                            ✓
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-center mt-2 font-medium text-stone-600 dark:text-stone-400 truncate">{{ theme.name }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Default Option -->
+                        <div 
+                            @click="form.theme_id = null"
+                            class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-colors"
+                            :class="form.theme_id === null ? 'border-rose-500 bg-rose-50/50 dark:bg-rose-900/10' : 'border-stone-200 dark:border-stone-700'"
+                        >
+                            <div class="w-10 h-10 rounded-full bg-white dark:bg-stone-700 border border-stone-200 dark:border-stone-600 flex items-center justify-center text-stone-400">
+                                🚫
+                            </div>
+                            <div>
+                                <div class="font-medium text-sm text-stone-900 dark:text-stone-100">Sin Tema Específico</div>
+                                <div class="text-xs text-stone-500 dark:text-stone-400">Usar diseño por defecto</div>
+                            </div>
+                            <div v-if="form.theme_id === null" class="ml-auto text-rose-600">✓</div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Personalización de Botones -->
