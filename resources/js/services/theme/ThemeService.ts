@@ -40,19 +40,19 @@ export class ThemeService {
      * Obtener todos los temas disponibles (sistema + usuario)
      */
     async getAvailableThemes(): Promise<Theme[]> {
-        const response = await apiClient.get<Theme[]>('/api/themes');
-        return response.data || [];
+        const response = await apiClient.get<{ themes: Theme[], message?: string }>('/api/themes');
+        return response.data?.themes || [];
     }
 
     /**
      * Obtener un tema específico por ID
      */
     async getTheme(id: number): Promise<Theme> {
-        const response = await apiClient.get<Theme>(`/api/themes/${id}`);
-        if (!response.data) {
+        const response = await apiClient.get<{ theme: Theme, message?: string }>(`/api/themes/${id}`);
+        if (!response.data?.theme) {
             throw new Error('Tema no encontrado');
         }
-        return response.data;
+        return response.data.theme;
     }
 
     /**
@@ -104,10 +104,10 @@ export class ThemeService {
                 }
             });
 
-            response = await apiClient.postFormData<ThemeUploadResponse>(`/themes/${id}`, formData);
+            response = await apiClient.postFormData<ThemeUploadResponse>(`/api/themes/${id}`, formData);
         } else {
             // Sin archivo, usar JSON normal
-            response = await apiClient.put<ThemeUploadResponse>(`/themes/${id}`, data);
+            response = await apiClient.put<ThemeUploadResponse>(`/api/themes/${id}`, data);
         }
 
         if (!response.data?.theme) {
@@ -121,7 +121,7 @@ export class ThemeService {
      * Eliminar tema personalizado
      */
     async deleteTheme(id: number): Promise<void> {
-        await apiClient.delete(`/themes/${id}`);
+        await apiClient.delete(`/api/themes/${id}`);
     }
 
     /**

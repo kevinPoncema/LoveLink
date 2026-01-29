@@ -37,6 +37,11 @@ class Theme extends Model
     }
 
     /**
+     * Atributos adicionales para incluir en JSON
+     */
+    protected $appends = ['is_system'];
+
+    /**
      * Relación: Un tema puede ser usado por múltiples landings
      */
     public function landings(): HasMany
@@ -82,5 +87,13 @@ class Theme extends Model
     public function isSystemTheme(): bool
     {
         return $this->user_id === null;
+    }
+
+    /**
+     * Accessor para el atributo is_system
+     */
+    public function getIsSystemAttribute(): bool
+    {
+        return $this->isSystemTheme();
     }
 }
