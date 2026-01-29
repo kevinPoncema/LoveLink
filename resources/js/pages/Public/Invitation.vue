@@ -112,7 +112,7 @@ const yesButtonScale = computed(() => {
         <div v-else class="w-full max-w-7xl h-[90vh] md:h-[85vh] bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl overflow-hidden border-4 border-white/50 transform transition-all flex flex-col relative z-20">
 
             <div class="flex flex-col md:flex-row h-full">
-                <!-- Image Area - Takes more space on desktop -->
+                <!-- Image Area -->
                 <div class="relative w-full md:w-3/5 h-[45%] md:h-full bg-stone-200 overflow-hidden">
                     <transition
                         enter-active-class="transition-opacity duration-1000 ease-in-out"
@@ -130,7 +130,7 @@ const yesButtonScale = computed(() => {
                             alt="Invitación"
                         />
                         <div v-else class="w-full h-full flex items-center justify-center bg-rose-100 text-rose-300">
-                            <span class="text-8xl animate-pulse">💝</span>
+                            <span class="text-8xl animate-pulse">✨</span>
                         </div>
                     </transition>
 
@@ -142,7 +142,7 @@ const yesButtonScale = computed(() => {
                     </div>
                 </div>
 
-                <!-- Text Area - Flex col for centering content -->
+                <!-- Text Area -->
                 <div class="relative w-full md:w-2/5 p-6 md:p-12 flex flex-col justify-center items-center text-center bg-white/80 backdrop-blur-md overflow-y-auto">
                     <template v-if="!hasSaidYes">
                         <h1 
@@ -154,10 +154,10 @@ const yesButtonScale = computed(() => {
 
                         <div v-if="noInteractionText" class="mb-8 min-h-[3em] flex items-center justify-center">
                             <span class="text-xl md:text-2xl font-bold animate-elastic text-red-500 bg-red-50 px-4 py-2 rounded-xl shadow-inner inline-block transform rotate-2">
-                                {{ noInteractionText }} 💔
+                                {{ noInteractionText }} 🥺
                             </span>
                         </div>
-                        <div v-else class="mb-8 min-h-[3em]"></div> <!-- Spacer -->
+                        <div v-else class="mb-8 min-h-[3em]"></div>
 
                         <div class="flex flex-col gap-6 items-center w-full max-w-sm">
                             <button
@@ -192,7 +192,7 @@ const yesButtonScale = computed(() => {
                                 {{ invitation.yes_message || '¡Sabía que dirías que sí!' }}
                             </p>
                             <div class="mt-12 text-7xl animate-pulse flex justify-center gap-4">
-                                <span>💖</span><span>✨</span><span>💑</span>
+                                <span>✨</span><span>🎉</span><span>🎈</span>
                             </div>
                         </div>
                     </template>
@@ -227,3 +227,4 @@ const yesButtonScale = computed(() => {
         transform: translateY(0);
     }
 }
+</style>
