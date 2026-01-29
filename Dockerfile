@@ -36,20 +36,22 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 # Copy application files
 COPY . .
 
-# Install PHP dependencies
+# Install PHP dependencies (Optimized for production)
 RUN composer install --no-interaction --no-progress --prefer-dist --no-dev --optimize-autoloader
 
-# Install Node dependencies
-RUN npm install
+# Install Node dependencies and BUILD assets
+RUN npm install && npm run build
 
 # Create necessary directories
 RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views database && \
-    touch database/database.sqlite && \
     chown -R www-data:www-data /var/www/html
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html
+# Set strict permissions for production
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-EXPOSE 8000 5173
+# PHP-FPM listen on port 9000 by default
+EXPOSE 9000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# En producción, ejecutamos PHP-FPM
+CMD ["php-fpm"]
