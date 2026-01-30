@@ -21,7 +21,7 @@ const showPasswordConfirmation = ref(false);
 
 // Métodos
 const submit = () => {
-    form.post('/register', {
+    form.post('/api/auth/register', {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
