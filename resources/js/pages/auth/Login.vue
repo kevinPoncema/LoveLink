@@ -20,7 +20,7 @@ const showPassword = ref(false);
 
 // Métodos
 const submit = () => {
-    form.post('/login', {
+    form.post('/api/auth/login', {
         onFinish: () => form.reset('password'),
     });
 };
