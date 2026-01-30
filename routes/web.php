@@ -41,15 +41,17 @@ Route::middleware('guest')->group(function () {
 });
 
 // Rutas protegidas (requieren autenticación)
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
-
+Route::middleware(['auth'])->group(function () {
     // Ruta para obtener usuario autenticado (para AJAX requests)
     Route::get('/user', function () {
         return response()->json(auth()->user());
     })->name('user');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
 
     // Gestión de Temas
     Route::get('/themes', function () {

@@ -23,17 +23,19 @@ export type TwoFactorConfigContent = {
 export type LoginData = {
     email: string;
     password: string;
+    remember?: boolean;
 };
 
 export type RegisterData = {
     email: string;
     password: string;
-    name?: string;
+    password_confirmation: string;
+    name: string;
 };
 
 export type AuthResponse = {
     user: User;
-    token: string;
+    token: string | null;
     message?: string;
 };
 
