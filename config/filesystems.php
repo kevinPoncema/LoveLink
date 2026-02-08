@@ -60,16 +60,7 @@ return [
             'report' => false,
         ],
 
-        // Media storage disks for development and production
-        'media' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public/media'),
-            'url' => '/storage/media', // Relative URL for portability
-            'visibility' => 'public',
-            'throw' => false,
-            'report' => false,
-        ],
-
+        // Media storage disk (cloud only)
         'media_cloud' => [
             'driver' => 's3',
             'key' => env('CLOUD_ACCESS_KEY_ID'),
