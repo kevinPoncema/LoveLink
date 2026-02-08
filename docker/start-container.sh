@@ -42,6 +42,12 @@ php artisan migrate --force --no-interaction || echo "⚠️  Migraciones fallar
 echo "🔗 Verificando enlace de storage..."
 php artisan storage:link || echo "📁 Enlace de storage ya existe"
 
-# 6. Iniciar Supervisor para gestionar Nginx y PHP-FPM
+# 6. Verificar y configurar SSL automáticamente
+echo "🔐 Verificando configuración SSL..."
+export SETUP_CRON=true
+export PROJECT_PATH=/var/www/html
+/var/www/html/docker/ssl-check.sh || echo "⚠️  SSL check completado con advertencias"
+
+# 7. Iniciar Supervisor para gestionar Nginx y PHP-FPM
 echo "✅ Iniciando servicios web..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

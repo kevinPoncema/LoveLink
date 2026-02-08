@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     environment:
       - APP_ENV=production
       - APP_DEBUG=false
@@ -16,9 +17,16 @@ services:
       - DB_DATABASE=lovelink
       - DB_USERNAME=lovelink
       - DB_PASSWORD=lovelink123
+      # SSL Configuration
+      - SSL_DOMAIN=lovelink.kevinponcedev.xyz
+      - SSL_EMAIL=kevin@kevinponcedev.xyz
+      - SETUP_CRON=true
     volumes:
       - ./storage:/var/www/html/storage
       - .env:/var/www/html/.env
+      # Certificados SSL desde el host
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/lib/letsencrypt:/var/lib/letsencrypt:ro
       # Removido: - .:/var/www/html (sobrescribe vendor/)
     depends_on:
       mariadb:
