@@ -1,10 +1,18 @@
-# UsPage
+# LoveLink
 
-UsPage es una plataforma web diseñada para que usuarios creen landing pages conmemorativas personalizadas para parejas. Desarrollada con **Laravel 12, Vue 3 e Inertia.js**, implementa patrones de arquitectura limpia (Repositorios y Servicios) para mantener el código escalable y testeable desde el inicio.
+LoveLink es una **plataforma web moderna** que permite a las parejas crear landing pages conmemorativas personalizadas con galerías de fotos, temas visuales y contenido romántico. Desarrollada con **Laravel 12, Vue 3 e Inertia.js**, implementa patrones de arquitectura empresarial (Repository + Service) y está optimizada para **despliegue en producción con Docker**.
 
 ## 🎯 Propósito del Proyecto
 
-Este es un **MVP (Minimum Viable Product)** creado como proyecto de portafolio para demostrar habilidades en desarrollo backend con patrones de arquitectura profesionales, manejo de base de datos relacional, y prácticas de ingeniería de software. Los usuarios pueden crear y personalizar una landing page con contenido conmemorativo, galerías de fotos y temas visuales.
+Este proyecto demuestra **habilidades de desarrollo full-stack profesional** con énfasis en:
+- ✅ **Backend robusto** con arquitectura limpia y SOLID principles
+- ✅ **Frontend SPA moderno** con Vue 3 + Composition API
+- ✅ **DevOps completo** con Docker + Nginx optimizado
+- ✅ **Base de datos normalizada** siguiendo 3NF
+- ✅ **Testing automatizado** y prácticas de calidad de código
+- ✅ **Integración cloud** con Digital Ocean Spaces
+
+Perfecto para parejas que quieren **inmortalizar su historia de amor** en una página web única y elegante.
 
 ---
 
@@ -12,58 +20,75 @@ Este es un **MVP (Minimum Viable Product)** creado como proyecto de portafolio p
 
 | Componente | Tecnología | Versión |
 |-----------|-----------|---------|
-| **Backend** | Laravel | 12 |
-| **PHP** | PHP | 8.4+ |
-| **Frontend** | Vue 3 (Composition API) | 3 |
-| **Meta-Framework** | Inertia.js | 2 |
-| **Estilos** | Tailwind CSS | 4 |
-| **Base de Datos** | MySQL/MariaDB | 8.0+ |
-| **Gestor de Paquetes (Backend)** | Composer | Latest |
-| **Gestor de Paquetes (Frontend)** | npm | Latest |
-| **Herramientas** | Vite, Laravel Sail | Latest |
+| **Backend Framework** | Laravel | 12 |
+| **Runtime** | PHP | 8.4+ |
+| **Frontend Framework** | Vue 3 (Composition API) | 3 |
+| **SPA Meta-Framework** | Inertia.js | 2 |
+| **CSS Framework** | Tailwind CSS | 4 |
+| **Base de Datos** | MySQL/MariaDB | 11+ |
+| **Containerización** | Docker + Docker Compose | Latest |
+| **Servidor Web** | Nginx | Latest |
+| **Almacenamiento Cloud** | Digital Ocean Spaces | Latest |
+| **Build Tools** | Vite + Laravel Mix | Latest |
+| **Testing** | PHPUnit + Pest | Latest |
 
 ---
 
 ## 📋 Características Principales
 
-- ✅ **Autenticación:** Registro e inicio de sesión con Laravel Breeze.
-- ✅ **Crear Landings:** Un usuario puede crear múltiples landings con slug único.
-- ✅ **Personalización Básica:** Editar nombres, fecha de aniversario, bio, colores y fondos del tema.
-- ✅ **Galería de Fotos:** Subir imágenes (JPG, PNG, WebP, máx. 5 MB) con URL pública y thumbnails opcionales.
-- ✅ **Temas Personalizables:** Catálogo de temas predefinidos con colores y fondos editables.
-- ✅ **Invitación San Valentín:** Página especial con mensaje personalizable y botones (futuro: GIFs personalizados).
-- ✅ **Visualización Pública:** Acceso a landing via URL amigable: `/p/{slug}`.
-- ✅ **Arquitectura Profesional:** Patrón Repository + Service para código mantenible; SystemControl centraliza límites de media.
+- ✅ **Sistema de Autenticación Completo:** Registro, login, recuperación de contraseña con Laravel Fortify
+- ✅ **Landing Pages Personalizables:** URLs amigables (`/p/{slug}`) con SEO optimizado
+- ✅ **Editor Visual de Temas:** Catálogo de temas con colores, fondos y tipografías personalizables
+- ✅ **Galería Multimedia Avanzada:** Upload de imágenes (JPG, PNG, WebP) hasta 100MB con thumbnails automáticos
+- ✅ **Almacenamiento Cloud:** Integración con Digital Ocean Spaces para escalabilidad
+- ✅ **Invitaciones Especiales:** Páginas de San Valentín con mensajes personalizables
+- ✅ **Arquitectura Empresarial:** Patrón Repository + Service + DTO para mantenibilidad
+- ✅ **Despliegue Production-Ready:** Docker + Nginx + SSL/TLS con Cloudflare
+- ✅ **API RESTful:** Endpoints documentados con validación robusta
 
 ---
 
 ## 🏗️ Arquitectura
 
-El proyecto sigue los principios de **Clean Architecture**:
+El proyecto implementa **Clean Architecture** con separación clara de responsabilidades:
+
+### Capas de la Aplicación
 
 ```
-┌─────────────────────────────────────────┐
-│   Capa de Presentación (Controllers)    │
-│        (Controladores Slim)             │
-└─────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────┐
-│   Capa de Servicio (Services)           │
-│   (Lógica de Negocio Pura)              │
-└─────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────┐
-│   Capa de Acceso a Datos (Repositories) │
-│   (Abstracción sobre Eloquent)          │
-└─────────────────────────────────────────┘
-                    ↓
-┌─────────────────────────────────────────┐
-│   Capa de Datos (Eloquent Models)       │
-│   (Mapeo Relacional de Objetos)         │
-└─────────────────────────────────────────┘
+🌐 Frontend (Vue 3 + Inertia.js)
+     ↓ HTTP Requests
+🎮 Controllers (Orchestration Layer)
+     ↓ Business Logic
+🧠 Services (Domain Logic)
+     ↓ Data Access
+📦 Repositories (Data Abstraction)
+     ↓ ORM Queries
+🗄️ Models (Eloquent/Database)
 ```
 
-### Estructura de Carpetas
+### Principios Implementados
+
+- **Single Responsibility:** Cada clase tiene una única responsabilidad
+- **Dependency Injection:** Services y Repositories inyectados via Service Container
+- **Interface Segregation:** Contratos explícitos para cada Repository
+- **Clean Code:** PSR-12, tipado estricto, naming conventions
+- **Testing:** Unit tests para Services, Feature tests para Controllers
+
+### Estructura Modular
+
+```
+app/
+├── Http/Controllers/     # Orquestación de requests/responses
+├── Services/            # Lógica de negocio pura
+├── Repositories/        # Acceso a datos (abstraction layer)
+├── Models/             # Eloquent ORM models
+├── DTOs/               # Data Transfer Objects
+resources/js/
+├── pages/              # Vue SPA pages (Inertia)
+├── components/         # Componentes reutilizables
+├── composables/        # Vue 3 Composition API logic
+└── layouts/           # Layout templates
+```
 
 ```
 uspage/
