@@ -28,9 +28,10 @@ RUN npm run build
 # 6. Linkear storage público
 RUN php artisan storage:link || echo "Storage link ya existe"
 
-# 7. Configuración de Nginx y Supervisor
+# 7. Configuración de Nginx, PHP y Supervisor
 COPY docker/app.conf /etc/nginx/sites-available/default
 RUN rm -f /etc/nginx/sites-enabled/default && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+COPY docker/php-uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # 8. Directorios, permisos y script de inicio

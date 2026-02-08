@@ -21,14 +21,18 @@ php artisan config:cache
 php artisan view:cache
 
 # 4. Verificar assets compilados
-echo "🎨 Verificando assets..."
+echo "🎨 Verificando assets y configuración..."
 if [ -d "/var/www/html/public/build" ]; then
     echo "✅ Assets compilados encontrados"
-    ls -la /var/www/html/public/build/
+    rm -f /var/www/html/public/hot  # Eliminar archivo hot automáticamente
 else
     echo "❌ Assets no encontrados, ejecutando build..."
     npm run build
 fi
+
+# Verificar configuración de PHP para uploads
+echo "📁 Configuración PHP upload_max_filesize: $(php -r 'echo ini_get("upload_max_filesize");')"
+echo "📁 Configuración PHP post_max_size: $(php -r 'echo ini_get("post_max_size");')"
 
 # 4. Ejecutar migraciones si es necesario
 echo "🗄️  Verificando base de datos..."
