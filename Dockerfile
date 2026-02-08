@@ -25,11 +25,15 @@ COPY . .
 RUN composer dump-autoload --optimize
 RUN npm run build
 
-# 6. Configuración de Nginx y Supervisor
+# 6. Linkear storage público
+RUN php artisan storage:link || echo "Storage link ya existe"
+
+# 7. Configuración de Nginx y Supervisor
 COPY docker/app.conf /etc/nginx/sites-available/default
+RUN rm -f /etc/nginx/sites-enabled/default && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# 7. Directorios, permisos y script de inicio
+# 8. Directorios, permisos y script de inicio
 RUN mkdir -p /var/run/php storage/logs storage/framework/cache storage/framework/sessions storage/framework/views \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/run/php \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/run/php
