@@ -151,6 +151,79 @@ fi
 - Red Docker interna para comunicación con MariaDB
 - Variables de entorno optimizadas para producción
 
+---
+
+### Error: 413 Request Entity Too Large - Upload de archivos multimedia
+
+**Descripción del Problema:**
+Al intentar subir imágenes o archivos multimedia a la aplicación, el servidor respondía con error 413 "Content Too Large", impidiendo el upload de cualquier archivo que excediera los límites por defecto.
+
+**Síntomas:**
+```bash
+HTTP/1.1 413 Request Entity Too Large
+nginx/1.18.0 (Ubuntu)
+```
+
+**Causa Raíz:**
+Nginx y PHP tenían configuraciones muy restrictivas para el tamaño de archivos:
+- Nginx `client_max_body_size` por defecto: 1MB
+- PHP `upload_max_filesize` por defecto: 2MB  
+- PHP `post_max_size` por defecto: 8MB
+- Timeouts muy cortos para uploads largos
+
+**Solución:**
+
+**1. Configuración de Nginx optimizada (`docker/app.conf`):**
+```nginx
+# Configuración para archivos grandes y multimedia
+client_max_body_size 100M;
+client_body_timeout 300s;
+client_header_timeout 300s;
+client_body_buffer_size 128k;
+large_client_header_buffers 4 256k;
+
+# Timeouts para uploads largos
+send_timeout 300s;
+proxy_connect_timeout 300s;
+proxy_send_timeout 300s;
+proxy_read_timeout 300s;
+```
+
+**2. Configuración de PHP personalizada (`docker/php-uploads.ini`):**
+```ini
+# Configuración para uploads de archivos grandes
+upload_max_filesize = 100M
+post_max_size = 100M
+max_execution_time = 300
+max_input_time = 300
+memory_limit = 256M
+max_file_uploads = 20
+
+# Buffer para archivos grandes
+output_buffering = 4096
+max_input_vars = 3000
+```
+
+**3. Modificación del Dockerfile:**
+```dockerfile
+# Copiar configuración PHP personalizada
+COPY docker/php-uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+```
+
+**4. Script de verificación en `start-container.sh`:**
+```bash
+# Verificar configuración de PHP para uploads
+echo "📁 Configuración PHP upload_max_filesize: $(php -r 'echo ini_get("upload_max_filesize");')"
+echo "📁 Configuración PHP post_max_size: $(php -r 'echo ini_get("post_max_size");')"
+```
+
+**Verificación:**
+Después de aplicar los cambios, la aplicación puede manejar:
+- ✅ Archivos hasta 100MB
+- ✅ Uploads con timeout de 5 minutos
+- ✅ Hasta 20 archivos simultáneos
+- ✅ Compatible con Cloudflare proxy
+
 ## Error 403 Forbidden en Archivos Multimedia (29/01/2026)
 
 ### Descripción del Problema
