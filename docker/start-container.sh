@@ -8,11 +8,12 @@ echo "📁 Configurando permisos..."
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 2. Limpiar cachés previas
-echo "🧹 Limpiando cachés..."
+# 2. Limpiar cachés previas y archivos de desarrollo
+echo "🧹 Limpiando cachés y archivos de desarrollo..."
 php artisan cache:clear
 php artisan config:clear
 php artisan view:clear
+rm -f /var/www/html/public/hot
 
 # 3. Generar cachés de configuración para producción
 echo "⚡ Generando cachés de producción..."
