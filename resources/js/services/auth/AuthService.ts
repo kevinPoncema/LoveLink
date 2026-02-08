@@ -1,7 +1,7 @@
-import type { 
-    User, 
-    LoginData, 
-    RegisterData, 
+import type {
+    User,
+    LoginData,
+    RegisterData,
     AuthResponse,
     ApiResponse,
     DashboardStats
@@ -16,16 +16,19 @@ export class AuthService {
     async login(credentials: LoginData): Promise<AuthResponse> {
         // Obtener CSRF token primero
         await apiClient.get('/sanctum/csrf-cookie');
-        
+
         // Hacer login usando el endpoint de Fortify
-        const response = await apiClient.post('/login', credentials);
-        
+        await apiClient.post('/login', credentials);
+
         // Para Fortify con autenticación basada en sesiones, no hay token
         // El usuario quedará autenticado automáticamente por Laravel
-        
+
         // Obtener datos del usuario después del login
         const user = await this.getUser();
-        
+
+        // Redirigir al dashboard
+        router.visit('/dashboard');
+
         return {
             user,
             token: null, // No usamos tokens con Fortify sessions
@@ -33,25 +36,20 @@ export class AuthService {
     }
 
     /**
-     * Registrar nuevo usuario usando Fortify
+     * Registrar nuevo usuario usando la API y luego iniciar sesión
      */
     async register(userData: RegisterData): Promise<AuthResponse> {
         // Obtener CSRF token primero
         await apiClient.get('/sanctum/csrf-cookie');
-        
-        // Hacer registro usando el endpoint de Fortify
-        const response = await apiClient.post('/register', userData);
-        
-        // Para Fortify con autenticación basada en sesiones, no hay token
-        // El usuario quedará autenticado automáticamente por Laravel
-        
-        // Obtener datos del usuario después del registro
-        const user = await this.getUser();
-        
-        return {
-            user,
-            token: null, // No usamos tokens con Fortify sessions
-        };
+
+        // Hacer registro usando el endpoint de API
+        await apiClient.post('/api/auth/register', userData);
+
+        // Iniciar sesión inmediatamente para crear la sesión web y redirigir al dashboard
+        return this.login({
+            email: userData.email,
+            password: userData.password
+        });
     }
 
     /**
@@ -70,13 +68,18 @@ export class AuthService {
      * Obtener datos del usuario autenticado
      */
     async getUser(): Promise<User> {
-        const response = await apiClient.get<User>('/user');
-        
-        if (response.data) {
-            this.setUser(response.data);
-            return response.data;
+        const response: any = await apiClient.get<User>('/user');
+
+        // Axios response structure usually puts data in response.data
+        // But if interceptors modify it, check directly
+        const userData = response.data || response;
+
+        if (userData && userData.id) {
+            this.setUser(userData);
+            return userData;
         }
-        
+
+        console.error('Failed to get user data. Response:', response);
         throw new Error('No se pudo obtener los datos del usuario');
     }
 

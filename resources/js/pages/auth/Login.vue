@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { authService } from '@/services/auth/AuthService';
 
 defineProps<{
     canResetPassword?: boolean;
@@ -17,12 +18,35 @@ const form = useForm({
 
 // Estados locales
 const showPassword = ref(false);
+const isProcessing = ref(false);
 
 // Métodos
-const submit = () => {
-    form.post('/api/auth/login', {
-        onFinish: () => form.reset('password'),
-    });
+const submit = async () => {
+    isProcessing.value = true;
+    form.clearErrors();
+
+    try {
+        await authService.login({
+            email: form.email,
+            password: form.password,
+            remember: form.remember,
+        });
+        // La redirección es manejada por el servicio.
+        // No cambiamos isProcessing a false para evitar clics múltiples mientras se redirige.
+    } catch (error: any) {
+        isProcessing.value = false;
+        form.reset('password');
+
+        if (error.response?.data?.errors) {
+            Object.keys(error.response.data.errors).forEach(key => {
+                form.setError(key as any, error.response.data.errors[key][0]);
+            });
+        } else if (error.response?.data?.message) {
+             form.setError('email', error.response.data.message);
+        } else {
+             form.setError('email', 'Ocurrió un error inesperado. Inténtalo de nuevo.');
+        }
+    }
 };
 
 const togglePasswordVisibility = () => {
@@ -65,7 +89,7 @@ const togglePasswordVisibility = () => {
                             type="email"
                             autocomplete="email"
                             required
-                            :disabled="form.processing"
+                            :disabled="isProcessing"
                             placeholder="tu@email.com"
                             class="mt-1 block w-full px-3 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
                         />
@@ -83,14 +107,14 @@ const togglePasswordVisibility = () => {
                                 :type="showPassword ? 'text' : 'password'"
                                 autocomplete="current-password"
                                 required
-                                :disabled="form.processing"
+                                :disabled="isProcessing"
                                 placeholder="Tu contraseña"
                                 class="block w-full px-3 py-2 pr-10 border border-stone-200 dark:border-stone-600 rounded-xl text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-700 focus:ring-rose-500 focus:border-rose-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors placeholder:text-stone-400 dark:placeholder:text-stone-500"
                             />
                             <button
                                 type="button"
                                 @click="togglePasswordVisibility"
-                                :disabled="form.processing"
+                                :disabled="isProcessing"
                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-400 disabled:cursor-not-allowed"
                             >
                                 <span class="text-sm">
@@ -106,7 +130,7 @@ const togglePasswordVisibility = () => {
                             id="remember"
                             v-model="form.remember"
                             type="checkbox"
-                            :disabled="form.processing"
+                            :disabled="isProcessing"
                             class="h-4 w-4 text-rose-600 focus:ring-rose-500 border-stone-300 dark:border-stone-600 rounded disabled:cursor-not-allowed"
                         />
                         <label for="remember" class="ml-2 block text-sm text-stone-700 dark:text-stone-300">
@@ -117,11 +141,11 @@ const togglePasswordVisibility = () => {
                     <!-- Botón de login -->
                     <button
                         type="submit"
-                        :disabled="form.processing"
+                        :disabled="isProcessing"
                         class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                     >
                         <svg
-                            v-if="form.processing"
+                            v-if="isProcessing"
                             class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -130,7 +154,7 @@ const togglePasswordVisibility = () => {
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        {{ form.processing ? 'Iniciando sesión...' : 'Entrar a mi cuenta' }}
+                        {{ isProcessing ? 'Iniciando sesión...' : 'Entrar a mi cuenta' }}
                     </button>
                 </form>
 
