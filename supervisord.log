@@ -53,3 +53,7 @@
 2026-02-08 14:26:07,708 INFO success: php-fpm entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
 2026-02-08 14:26:07,708 INFO success: nginx entered RUNNING state, process has stayed up for > than 1 seconds (startsecs)
 2026-02-08 14:29:09,140 INFO reaped unknown pid 88 (exit status 0)
+2026-02-08 14:48:55,167 WARN received SIGQUIT indicating exit request
+2026-02-08 14:48:55,167 INFO waiting for php-fpm, nginx to die
+2026-02-08 14:48:55,172 INFO stopped: nginx (exit status 0)
+2026-02-08 14:48:55,184 INFO stopped: php-fpm (exit status 0)
