@@ -15,7 +15,8 @@ class MediaService
     public function __construct(
         protected MediaRepository $mediaRepository
     ) {
-        $diskName = env('MEDIA_STORAGE_DRIVER', 'local') === 's3' ? 'media_cloud' : 'media';
+        // Configuración dinámica de disco de media (por defecto media_cloud)
+        $diskName = env('MEDIA_DISK', 'media_cloud');
         $this->disk = Storage::disk($diskName);
     }
 
@@ -95,15 +96,9 @@ class MediaService
      */
     protected function getDiskForMedia(Media $media): \Illuminate\Contracts\Filesystem\Filesystem
     {
-        // Si la URL es absoluta y coincide con la URL de la nube, usar disco cloud
-        $cloudUrl = config('filesystems.disks.media_cloud.url');
-        if ($cloudUrl && str_starts_with($media->url, $cloudUrl)) {
-            return Storage::disk('media_cloud');
-        }
-        
-        // Si no, asumimos disco local 'media'
-        // Esto maneja archivos creados localmente que tienen URL relativa
-        return Storage::disk('media');
+        // Usar disco configurado dinámicamente (por defecto media_cloud)
+        $diskName = env('MEDIA_DISK', 'media_cloud');
+        return Storage::disk($diskName);
     }
 
     /**
