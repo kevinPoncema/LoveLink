@@ -59,13 +59,9 @@ check_ssl_response() {
 # Función para instalar certbot si no existe
 install_certbot() {
     if ! command -v certbot &> /dev/null; then
-        log "📦 Instalando Certbot..."
+        log "📦 Instalando Certbot via apt..."
         apt-get update
-        apt-get install -y snapd
-        snap install core
-        snap refresh core
-        snap install --classic certbot
-        ln -sf /snap/bin/certbot /usr/bin/certbot
+        apt-get install -y certbot python3-certbot-nginx
     else
         log "✅ Certbot ya está instalado"
     fi
